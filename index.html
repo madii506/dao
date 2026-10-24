@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>DAO</title>
 <meta name="description" content="every launch is a dao. a privacy layer for pump.fun: no wallet, no signature, no name. free launches from a fresh wallet, a creator key born in your browser, gasless claims.">
-<meta name="theme-color" content="#050506">
+<meta name="theme-color" content="#050607">
 <meta property="og:type" content="website">
 <meta property="og:title" content="DAO">
 <meta property="og:description" content="every launch is a dao. a privacy layer for pump.fun: no wallet, no signature, no name.">
@@ -19,187 +19,206 @@
 <link rel="apple-touch-icon" href="/assets/img/icon-180.png?v=3">
 <link rel="preload" href="/assets/fonts/VT323-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/JetBrainsMono.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/css/desk.css?v=8">
-<link rel="stylesheet" href="/assets/css/story.css?v=6">
+<link rel="preload" href="/assets/fonts/PixelifySans.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/css/dao.css?v=1">
 </head>
 <body class="booting">
 
-<!-- 1. the way in: a keycard, the doors of room 00, an aisle of servers, the PC at the end of it -->
-<div id="intro" aria-label="DAO boot">
+<!-- the icons of the dao os: one line each, drawn here so nothing is fetched -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+  <symbol id="i-pc" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="1"/><path d="M8 20h8M12 16v4M7 8l2.5 2L7 12M11 12h4"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5M5.5 9.5V20h4.5v-5.5h4V20h4.5V9.5"/></symbol>
+  <symbol id="i-launch" viewBox="0 0 24 24"><path d="M12 2.8c3.1 2.4 4.6 5.6 4.6 9.6v3.4H7.4v-3.4c0-4 1.5-7.2 4.6-9.6z"/><circle cx="12" cy="9.8" r="1.7"/><path d="M7.4 12.8 4.6 15.6v3.6l2.8-1.6M16.6 12.8l2.8 2.8v3.6l-2.8-1.6M10.4 18.9 12 21.6l1.6-2.7"/></symbol>
+  <symbol id="i-coins" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7" ry="2.6"/><path d="M5 6v12c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6V6M5 12c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6"/></symbol>
+  <symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><circle cx="12" cy="12" r="5.2"/><path d="M12 9.4v5.2"/></symbol>
+  <symbol id="i-claim" viewBox="0 0 24 24"><path d="M12 3.2v10.6M7.6 9.6 12 14l4.4-4.4M4 14.5v5.3h16v-5.3"/></symbol>
+  <symbol id="i-privacy" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18"/><rect x="6.6" y="6.6" width="10.8" height="10.8"/><rect x="10.2" y="10.2" width="3.6" height="3.6"/></symbol>
+  <symbol id="i-readme" viewBox="0 0 24 24"><path d="M6 3h8.2L18 6.8V21H6zM14 3v4h4M9 11h6M9 14h6M9 17h3.6"/></symbol>
+  <symbol id="i-cmd" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="15" rx="1"/><path d="M7 9.5l2.8 2.5L7 14.5M12 15h5"/></symbol>
+  <symbol id="i-paint" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17"/><path d="M3.5 9.2h17M3.5 14.8h17M9.2 3.5v17M14.8 3.5v17"/><rect x="9.2" y="9.2" width="5.6" height="5.6" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-sweeper" viewBox="0 0 24 24"><circle cx="12" cy="12.5" r="4.8"/><path d="M12 3.6v3M12 18.4v3M3.1 12.5h3M17.9 12.5h3M5.7 6.2l2.1 2.1M16.2 16.7l2.1 2.1M18.3 6.2l-2.1 2.1M7.8 16.7l-2.1 2.1"/></symbol>
+  <symbol id="i-strip" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="M3 16.2l5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.5"/><path d="M4 3.5 20 20.5"/></symbol>
+  <symbol id="i-scan" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.8"/><circle cx="12" cy="12" r="4.8"/><path d="M12 12l6.2-6.2"/><circle cx="12" cy="12" r="1" fill="currentColor"/></symbol>
+  <symbol id="i-cd" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.8"/><circle cx="12" cy="12" r="2.4"/><path d="M12 5.6a6.4 6.4 0 0 1 6.4 6.4"/></symbol>
+  <symbol id="i-bin" viewBox="0 0 24 24"><path d="M4 6.2h16M9 6.2V3.8h6v2.4M6.2 6.2l1 14.6h9.6l1-14.6M10 10v7M14 10v7"/></symbol>
+  <symbol id="i-display" viewBox="0 0 24 24"><path d="M4 6h9.6M18.4 6H20M4 12h3.6M12.4 12H20M4 18h11.6"/><circle cx="16" cy="6" r="2.2"/><circle cx="10" cy="12" r="2.2"/><circle cx="18" cy="18" r="2.2"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"/></symbol>
+  <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 3.5 21.5 20h-19zM12 10v4.6M12 17.2v.6"/></symbol>
+  <symbol id="i-run" viewBox="0 0 24 24"><path d="M3.5 12H16M11.5 7.5 16 12l-4.5 4.5M20 5v14"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.3"/><path d="M15.2 15.2 20.5 20.5"/></symbol>
+  <symbol id="i-power" viewBox="0 0 24 24"><path d="M12 3v8M7.2 6.4a7.4 7.4 0 1 0 9.6 0"/></symbol>
+  <symbol id="i-apps" viewBox="0 0 24 24"><rect x="4" y="4" width="6.2" height="6.2"/><rect x="13.8" y="4" width="6.2" height="6.2"/><rect x="4" y="13.8" width="6.2" height="6.2"/><rect x="13.8" y="13.8" width="6.2" height="6.2"/></symbol>
+  <symbol id="i-door" viewBox="0 0 24 24"><path d="M5.5 21V3.5h9V21M14.5 5.5H19V21M3 21h18M11.8 12.2v.8"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h13M13 7l5 5-5 5"/></symbol>
+</defs></svg>
+
+<!-- 1. the way in: one moving shot from a corridor, through the doors of room 00, down the aisle to the pc -->
+<div id="intro" aria-label="room 00">
   <canvas id="room" aria-hidden="true"></canvas>
   <div class="lb top" aria-hidden="true"></div><div class="lb bot" aria-hidden="true"></div>
+  <button class="isound" id="isound" type="button" aria-pressed="false" aria-label="sound"><span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="lbl">sound off</span></button>
   <button class="iskip" id="iskip" type="button">skip ›</button>
-  <button class="isound" id="isound" type="button" aria-pressed="true">♪ sound on</button>
   <div class="iload" id="iload" aria-hidden="true">_</div>
   <div class="ihint" id="ihint"><span>click the screen or press <kbd>enter</kbd> to go in</span><span>type <b>help</b> for commands</span></div>
   <div class="itouch" id="itouch"><button type="button" data-go="">enter dao ↵</button><button type="button" data-go="launch">launch</button><button type="button" data-go="coins">coins</button><button type="button" data-go="claim">claim</button></div>
   <pre class="ifall" id="ifall" hidden></pre>
-  <div class="iflash" id="iflash"></div>
 </div>
+<div id="wflash" aria-hidden="true"></div>
 
+<!-- 2. inside the pc: the dao os -->
+<div id="os" hidden>
+  <header id="otop">
+    <button class="ologo" type="button" data-open="home" aria-label="dao home"><b>dao</b><i>_</i></button>
+    <div class="ocrumb" aria-live="polite"><span class="oroom">room 00</span><span class="osl">/</span><span id="oWhere">home</span></div>
+    <span class="grow"></span>
+    <div class="ostat" id="oStat" data-tip="read live from the server"><i class="dot"></i><span>checking…</span></div>
+    <button class="ofind" id="oFind" type="button" aria-label="search apps and commands"><svg class="ico"><use href="#i-search"/></svg><span>search</span><kbd id="oKey">ctrl k</kbd></button>
+    <button class="osnd" id="traySnd" type="button" aria-label="sound" aria-pressed="false" data-tip="sound on or off"><span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span></button>
+    <button class="oclock" id="clock" type="button" data-tip="date and time">--:--</button>
+    <button class="opow" id="shutBtn" type="button" aria-label="shut down" data-tip="shut down or go back to room 00"><svg class="ico"><use href="#i-power"/></svg></button>
+  </header>
 
-<!-- 2. the walk: past the doors your scroll drives the camera down the aisle; this is what you read on the way -->
-<nav id="snav" hidden aria-label="sections">
-  <a class="nlogo" href="#s-hero" data-to="s-hero"><b>dao</b><i>room 00</i></a>
-  <div class="nlinks"><a href="#s-what" data-to="s-what">about</a><a href="#s-how" data-to="s-how">launch</a><a href="#s-layers" data-to="s-layers">layers</a><a href="#s-tech" data-to="s-tech">tech</a><a href="#s-live" data-to="s-live">live</a><a href="#s-claim" data-to="s-claim">claim</a><a href="#s-faq" data-to="s-faq">faq</a></div>
-  <div class="nright"><button type="button" class="nsnd" id="nSnd" aria-label="sound">♪</button><button type="button" class="ngo" data-go="">enter the os <span>↵</span></button></div>
-</nav>
-<div id="srail" hidden aria-hidden="true"><div class="rnum"><b id="rSec">00</b><i>/09</i></div><div class="rbar"><i id="rFill"></i></div><div class="rdist" id="rDist">pc in —</div></div>
-<div id="sbar" hidden aria-hidden="true"><i id="sbarFill"></i></div>
-<main id="story" hidden>
-  <section class="s c" id="s-hero" data-n="00" aria-label="room 00">
-    <div class="cue" aria-hidden="true"><i></i></div>
-  </section>
+  <nav id="odock" aria-label="apps">
+    <button type="button" data-open="home" data-tip="home" aria-label="home"><svg class="ico"><use href="#i-home"/></svg></button>
+    <i class="sep"></i>
+    <button type="button" data-open="launch" data-tip="launch.exe · launch a coin" aria-label="launch a coin"><svg class="ico"><use href="#i-launch"/></svg></button>
+    <button type="button" data-open="coins" data-tip="coins.db · every coin" aria-label="coins"><svg class="ico"><use href="#i-coins"/></svg></button>
+    <button type="button" data-open="claim" data-tip="claim.exe · fees, no gas" aria-label="claim"><svg class="ico"><use href="#i-claim"/></svg></button>
+    <button type="button" data-open="privacy" data-tip="privacy.cpl · six layers" aria-label="privacy"><svg class="ico"><use href="#i-privacy"/></svg></button>
+    <i class="sep"></i>
+    <button type="button" data-open="strip" data-tip="strip.exe · what a photo carries" aria-label="strip a photo"><svg class="ico"><use href="#i-strip"/></svg></button>
+    <button type="button" data-open="scan" data-tip="scan.exe · what this page talks to" aria-label="scan this page"><svg class="ico"><use href="#i-scan"/></svg></button>
+    <button type="button" data-open="paint" data-tip="paint.exe · draw a coin" aria-label="paint"><svg class="ico"><use href="#i-paint"/></svg></button>
+    <button type="button" data-open="sweeper" data-tip="tracker sweeper" aria-label="tracker sweeper"><svg class="ico"><use href="#i-sweeper"/></svg></button>
+    <button type="button" data-open="cd" data-tip="cd player" aria-label="cd player"><svg class="ico"><use href="#i-cd"/></svg></button>
+    <button type="button" data-open="cmd" data-tip="cmd.exe" aria-label="command prompt"><svg class="ico"><use href="#i-cmd"/></svg></button>
+    <button type="button" data-open="readme" data-tip="readme.txt · the docs" aria-label="readme"><svg class="ico"><use href="#i-readme"/></svg></button>
+    <span class="grow"></span>
+    <button type="button" data-open="x" id="dockX" hidden data-tip="dao on x" aria-label="dao on x"><svg class="ico"><use href="#i-x"/></svg></button>
+    <button type="button" data-open="display" data-tip="display.cpl · colours, screen saver" aria-label="display settings"><svg class="ico"><use href="#i-display"/></svg></button>
+    <button type="button" data-open="bin" data-tip="recycle bin" aria-label="recycle bin"><svg class="ico"><use href="#i-bin"/></svg></button>
+  </nav>
 
-  <section class="s l" id="s-what" data-n="01">
-    <div class="panel">
-      <div class="tag rv">01 · room 00</div>
-      <h2 class="rv" data-dec>every launch is a <b>dao.</b></h2>
-      <p class="rv lead2">a privacy layer for pump.fun. launch a coin with no wallet, no signature and no name on it. free.</p>
-      <p class="rv" data-words>a coin with no name on it belongs to nobody in particular. no wallet of yours signs it, no dev wallet of yours sits on the chart, and nothing on the chain points back to a person. six layers make it true, and every one of them can be checked.</p>
-      <div class="zeros rv"><div><b>0</b><span>wallets to connect</span></div><div><b>0</b><span>signatures to give</span></div><div><b>0</b><span>SOL to spend</span></div></div>
-      <div class="rv"><button class="cta small" type="button" data-go="launch">launch a coin <span>›</span></button></div>
-    </div>
-  </section>
+  <main id="omain">
+    <div id="ohome" tabindex="-1">
+      <div class="hprog" aria-hidden="true"><i id="hProg"></i></div>
 
-  <section class="s r" id="s-how" data-n="02">
-    <div class="panel wide">
-      <div class="tag rv">02 · how a launch works</div>
-      <h2 class="rv" data-dec>six steps. none of them yours to sign.</h2>
-      <ol class="steps" id="steps">
-        <li class="rv"><b>the coin</b><span>a name, a ticker, a line about it. nothing about you. "launched on dao" goes at the end.</span></li>
-        <li class="rv"><b>the image</b><span>redrawn in your browser first, so the camera, the time and the place never leave your device.</span></li>
-        <li class="rv"><b>the creator key</b><span>born in your browser. it becomes the coin's creator and earns every creator fee. you save it. we never see it.</span></li>
-        <li class="rv"><b>proof of work</b><span>a few seconds of hashing on your device instead of an account. it keeps bots out without asking who you are.</span></li>
-        <li class="rv"><b>a fresh launcher</b><span>the treasury funds a brand-new wallet inside the launch transaction, to the lamport. it signs the create and ends empty.</span></li>
-        <li class="rv"><b>live</b><span>no dev buy, so nobody holds it at launch. it shows up in coins.db, read live from the chain.</span></li>
-      </ol>
-      <div class="rv"><button class="cta small" type="button" data-go="launch">open launch.exe <span>›</span></button></div>
-    </div>
-  </section>
+      <section class="hs hero" id="h-top">
+        <div class="hero-l">
+          <div class="kick rv"><i class="dot"></i><span>room 00 · online</span></div>
+          <h1 class="rv" data-dec>every launch<br>is a <b>dao.</b></h1>
+          <p class="lead rv">a privacy layer for pump.fun. launch a coin with no wallet, no signature and no name on it. it costs you nothing: a fresh wallet signs and pays, and the creator key is born in your browser.</p>
+          <div class="ctas rv"><button class="cta" type="button" data-open="launch">launch a coin <span>›</span></button><button class="cta ghost" type="button" data-open="coins">coins.db</button><button class="cta ghost" type="button" data-open="claim">claim fees</button></div>
+          <div class="zeros rv"><div><b>0</b><span>wallets to connect</span></div><div><b>0</b><span>signatures to give</span></div><div><b>0</b><span>SOL to spend</span></div><div><b class="t" data-to-n="6">6</b><span>layers, all checkable</span></div></div>
+        </div>
+        <div class="hero-r rv">
+          <div class="hud"><canvas id="wall" aria-hidden="true"></canvas><span class="hl tl">pc · room 00</span><span class="hl tr">ascii · live</span><span class="hl bl">no names · no logs</span><span class="hl br" id="hState"><i class="dot"></i>checking</span></div>
+        </div>
+      </section>
 
-  <section class="s l tall" id="s-layers" data-n="03">
-    <div class="panel wide sticky">
-      <div class="tag rv">03 · six layers</div>
-      <h2 class="rv" data-dec>what stays private, and what does not.</h2>
-      <div class="layers rv"><pre class="rings" id="rings" aria-hidden="true"></pre><div class="lcard" id="lcard"></div></div>
-      <div class="ldots rv" id="ldots"></div>
-    </div>
-  </section>
+      <div class="tape" aria-hidden="true"><div class="tape-in"><span>no wallet</span><span>no signature</span><span>no name</span><span>a fresh launcher every launch</span><span>gasless claims</span><span>images cleaned in your browser</span><span>no cookies</span><span>no analytics</span><span>no wallet</span><span>no signature</span><span>no name</span><span>a fresh launcher every launch</span><span>gasless claims</span><span>images cleaned in your browser</span><span>no cookies</span><span>no analytics</span></div></div>
 
-  <section class="s r" id="s-tech" data-n="04">
-    <div class="panel wide">
-      <div class="tag rv">04 · under the floor</div>
-      <h2 class="rv" data-dec>real tech under the toy.</h2>
-      <div class="spec">
-        <div class="rv"><i>01</i><b>simulated first</b><span>every launch runs on solana mainnet as a simulation with pump.fun's own sdk before it is sent. the cost is measured, not guessed.</span></div>
-        <div class="rv"><i>02</i><b>funded to the lamport</b><span>the launcher gets exactly what the create costs, inside the same transaction, and ends at zero.</span></div>
-        <div class="rv"><i>03</i><b>gasless claims</b><span>you sign the claim in your browser and the treasury pays the fee. the server checks every signature and relays plain claims only.</span></div>
-        <div class="rv"><i>04</i><b>self-hosted metadata</b><span>the coin's image and metadata are served from this site, not from a third party.</span></div>
-        <div class="rv"><i>05</i><b>a page that talks to itself</b><span>no analytics, no cookies, no outside scripts or fonts. the security policy forbids any other host. scan.exe shows it, live.</span></div>
-      </div>
-      <pre class="tlog rv" id="tlog" aria-label="what a launch does"></pre>
-    </div>
-  </section>
+      <section class="hs" id="h-how">
+        <header class="hh rv"><span class="hn">01</span><span class="hk">how a launch works</span><i></i></header>
+        <h2 class="rv" data-dec>six steps. none of them yours to sign.</h2>
+        <ol class="steps">
+          <li class="rv"><i>01</i><b>the coin</b><span>a name, a ticker, a line about it. nothing about you. "launched on dao" goes at the end.</span></li>
+          <li class="rv"><i>02</i><b>the image</b><span>redrawn in your browser first, so the camera, the time and the place never leave your device.</span></li>
+          <li class="rv"><i>03</i><b>the creator key</b><span>born in your browser. it becomes the coin's creator and earns every creator fee. you save it. we never see it.</span></li>
+          <li class="rv"><i>04</i><b>proof of work</b><span>a few seconds of hashing on your device instead of an account. it keeps bots out without asking who you are.</span></li>
+          <li class="rv"><i>05</i><b>a fresh launcher</b><span>the treasury funds a brand-new wallet inside the launch transaction, to the lamport. it signs the create and ends empty.</span></li>
+          <li class="rv"><i>06</i><b>live</b><span>no dev buy, so nobody holds it at launch. it shows up in coins.db, read live from the chain.</span></li>
+        </ol>
+        <div class="rv"><button class="cta small" type="button" data-open="launch">open launch.exe <span>›</span></button></div>
+      </section>
 
-  <section class="s l" id="s-live" data-n="05">
-    <div class="panel">
-      <div class="tag rv">05 · live from the chain</div>
-      <h2 class="rv" data-dec>launched on dao, lately.</h2>
-      <div class="live rv" id="live"><div class="dim">reading the chain…</div></div>
-      <div class="rv"><button class="cta small" type="button" data-go="coins">open coins.db <span>›</span></button></div>
-    </div>
-  </section>
+      <section class="hs" id="h-layers">
+        <header class="hh rv"><span class="hn">02</span><span class="hk">six layers</span><i></i></header>
+        <h2 class="rv" data-dec>what stays private, and what does not.</h2>
+        <div class="layers rv">
+          <pre class="rings" id="hRings" aria-hidden="true"></pre>
+          <div class="lright"><div class="ltabs" id="hTabs" role="tablist" aria-label="the six layers"></div><div class="lcard" id="hCard" role="tabpanel"></div><div class="lbar"><i id="hLbar"></i></div></div>
+        </div>
+      </section>
 
-  <section class="s r" id="s-claim" data-n="06">
-    <div class="panel">
-      <div class="tag rv">06 · claim without gas</div>
-      <h2 class="rv" data-dec>your fees. no SOL needed.</h2>
-      <ol class="mini">
-        <li class="rv">drop your key file into claim.exe. it stays in that window, in memory, and is gone when you close the tab.</li>
-        <li class="rv">press claim. you sign in your browser and the treasury pays the network fee.</li>
-        <li class="rv">send the SOL anywhere. where you send it is the one link only you can make.</li>
-      </ol>
-      <div class="rv"><button class="cta small" type="button" data-go="claim">open claim.exe <span>›</span></button></div>
-    </div>
-  </section>
+      <section class="hs" id="h-live">
+        <header class="hh rv"><span class="hn">03</span><span class="hk">live from the chain</span><i></i></header>
+        <h2 class="rv" data-dec>launched on dao, lately.</h2>
+        <div class="live rv" id="hLive"><div class="empty">reading the chain…</div></div>
+        <div class="rv"><button class="cta small" type="button" data-open="coins">open coins.db <span>›</span></button></div>
+      </section>
 
-  <section class="s l" id="s-public" data-n="07">
-    <div class="panel">
-      <div class="tag rv">07 · honest about it</div>
-      <h2 class="rv" data-dec>what stays public.</h2>
-      <p class="rv" data-words>everything on solana is public: the coin, its trades, the creator address, the launch wallet, and the fact that the dao treasury paid for it.</p>
-      <p class="rv" data-words>what is not public is any link from those to you, unless you make one. your IP reaches our host like it does every website; for the daily limit only, a salted hash of it is kept for a day, then deleted.</p>
-      <p class="rv small dim">memecoins are extremely risky and most go to zero. dao is a tool, not financial advice, and it is not affiliated with pump.fun.</p>
-    </div>
-  </section>
-
-  <section class="s r" id="s-faq" data-n="08">
-    <div class="panel wide">
-      <div class="tag rv">08 · questions</div>
-      <h2 class="rv" data-dec>asked in room 00.</h2>
-      <div class="faq rv" id="faq"></div>
-    </div>
-  </section>
-
-  <section class="s c end" id="s-end" data-n="09">
-    <div class="endbox">
-      <div class="tag rv">09 · the pc</div>
-      <h2 class="rv" data-dec>the pc at the end of the aisle is the os.</h2>
-      <p class="rv">click its screen, or type on it: launch, coins, claim, help.</p>
-      <div class="ctas rv"><button class="cta" type="button" data-go="">enter dao <span>↵</span></button><button class="cta ghost" type="button" data-go="launch">launch</button><button class="cta ghost" type="button" data-go="coins">coins</button><button class="cta ghost" type="button" data-go="claim">claim</button></div>
-      <footer class="sfoot rv"><span>no cookies · no analytics · this page only talks to itself</span><span id="sfX"></span></footer>
-    </div>
-  </section>
-</main>
-
-<!-- 3. the splash -->
-<div id="splash" hidden><div class="sp"><img src="/assets/img/ico-pc.png" alt=""><div><div class="sp1">dao</div><div class="sp2">a privacy layer for pump.fun</div></div></div><div class="spbar"><i></i></div><div class="spfoot">starting dao…</div></div>
-
-<!-- 4. the desktop -->
-<div id="desk" hidden>
-  <canvas id="wall" aria-hidden="true"></canvas>
-  <div class="wmark" aria-hidden="true">dao · room 00 · a privacy layer for pump.fun<br>build 1998.10 · no names, no logs</div>
-  <div class="icons" id="icons" role="list">
-    <button class="ic" data-open="pc" role="listitem"><img src="/assets/img/ico-pc.png" alt=""><span>my computer</span></button>
-    <button class="ic" data-open="launch" role="listitem"><img src="/assets/img/ico-launch.png" alt=""><span>launch.exe</span></button>
-    <button class="ic" data-open="coins" role="listitem"><img src="/assets/img/ico-coins.png" alt=""><span>coins.db</span></button>
-    <button class="ic" data-open="claim" role="listitem"><img src="/assets/img/ico-claim.png" alt=""><span>claim.exe</span></button>
-    <button class="ic" data-open="privacy" role="listitem"><img src="/assets/img/ico-privacy.png" alt=""><span>privacy.cpl</span></button>
-    <button class="ic" data-open="readme" role="listitem"><img src="/assets/img/ico-readme.png" alt=""><span>readme.txt</span></button>
-    <button class="ic" data-open="cmd" role="listitem"><img src="/assets/img/ico-cmd.png" alt=""><span>cmd.exe</span></button>
-    <button class="ic" data-open="paint" role="listitem"><img src="/assets/img/ico-paint.png" alt=""><span>paint.exe</span></button>
-    <button class="ic" data-open="sweeper" role="listitem"><img src="/assets/img/ico-sweeper.png" alt=""><span>sweeper.exe</span></button>
-    <button class="ic" data-open="strip" role="listitem"><img src="/assets/img/ico-strip.png" alt=""><span>strip.exe</span></button>
-    <button class="ic" data-open="scan" role="listitem"><img src="/assets/img/ico-scan.png" alt=""><span>scan.exe</span></button>
-    <button class="ic" data-open="cd" role="listitem"><img src="/assets/img/ico-cd.png" alt=""><span>cd player</span></button>
-    <button class="ic" data-open="bin" role="listitem"><img src="/assets/img/ico-bin.png" alt=""><span>recycle bin</span></button>
-    <button class="ic" data-open="x" role="listitem" id="icX" hidden><img src="/assets/img/ico-x.png" alt=""><span>dao on x.url</span></button>
-  </div>
-  <div class="lasso" id="sel"></div>
-
-  <div id="wins">
-    <!-- welcome -->
-    <section class="w" id="w-welcome" data-app="welcome" data-title="welcome to dao" data-icon="pc" style="--ww:640px;--wh:390px">
-      <div class="wb welcome">
-        <div class="wl">
-          <div class="wt">welcome to <b>dao</b></div>
-          <p>every launch is a <em>dao.</em> a privacy layer for pump.fun.</p>
-          <div class="wbtns">
-            <button class="bt big" data-open="launch"><img src="/assets/img/ico-launch-16.png" alt="">launch a coin, free</button>
-            <button class="bt big" data-open="coins"><img src="/assets/img/ico-coins-16.png" alt="">see every coin</button>
-            <button class="bt big" data-open="claim"><img src="/assets/img/ico-claim-16.png" alt="">claim fees, no gas</button>
-            <button class="bt big" data-open="privacy"><img src="/assets/img/ico-privacy-16.png" alt="">how it stays private</button>
+      <section class="hs" id="h-tech">
+        <header class="hh rv"><span class="hn">04</span><span class="hk">under the floor</span><i></i></header>
+        <h2 class="rv" data-dec>real tech under the toy.</h2>
+        <div class="tech">
+          <div class="spec">
+            <div class="rv"><i>01</i><b>simulated first</b><span>every launch runs on solana mainnet as a simulation with pump.fun's own sdk before it is sent. the cost is measured, not guessed.</span></div>
+            <div class="rv"><i>02</i><b>funded to the lamport</b><span>the launcher gets exactly what the create costs, inside the same transaction, and ends at zero.</span></div>
+            <div class="rv"><i>03</i><b>gasless claims</b><span>you sign the claim in your browser and the treasury pays the fee. the server checks every signature and relays plain claims only.</span></div>
+            <div class="rv"><i>04</i><b>self-hosted metadata</b><span>the coin's image and metadata are served from this site, not from a third party.</span></div>
+            <div class="rv"><i>05</i><b>a page that talks to itself</b><span>no analytics, no cookies, no outside scripts or fonts. the security policy forbids any other host. scan.exe shows it, live.</span></div>
           </div>
+          <div class="tlogbox rv"><div class="tlbar"><span></span><span></span><span></span><b>launch --private</b></div><pre class="tlog" id="hLog" aria-label="what a launch does"></pre></div>
         </div>
-        <div class="wr">
-          <div class="nos"><span>no wallet</span><span>no signature</span><span>no name</span><span>no SOL either</span></div>
-          <div class="wstate" id="welcomeState"><span class="dot"></span><span>…</span></div>
-          <label class="cb"><input type="checkbox" id="welcomeShow" checked> show this at startup</label>
-        </div>
-      </div>
-    </section>
+      </section>
 
+      <section class="hs" id="h-claim">
+        <header class="hh rv"><span class="hn">05</span><span class="hk">claim without gas</span><i></i></header>
+        <h2 class="rv" data-dec>your fees. no SOL needed.</h2>
+        <div class="trio">
+          <div class="rv"><i>1</i><b>load the key</b><span>drop your key file into claim.exe. it stays in that window, in memory, and is gone when you close the tab.</span></div>
+          <div class="rv"><i>2</i><b>claim</b><span>you sign in your browser and the treasury pays the network fee. the key never needs SOL.</span></div>
+          <div class="rv"><i>3</i><b>send it anywhere</b><span>where you send it is the one link only you can make. that part is up to you.</span></div>
+        </div>
+        <div class="rv"><button class="cta small" type="button" data-open="claim">open claim.exe <span>›</span></button></div>
+      </section>
+
+      <section class="hs" id="h-apps">
+        <header class="hh rv"><span class="hn">06</span><span class="hk">in this os</span><i></i></header>
+        <h2 class="rv" data-dec>every window works.</h2>
+        <div class="tiles">
+          <button class="tile rv" type="button" data-open="launch"><svg class="ico"><use href="#i-launch"/></svg><b>launch.exe</b><span>launch a coin, free and nameless</span></button>
+          <button class="tile rv" type="button" data-open="coins"><svg class="ico"><use href="#i-coins"/></svg><b>coins.db</b><span>every coin launched here, live</span></button>
+          <button class="tile rv" type="button" data-open="claim"><svg class="ico"><use href="#i-claim"/></svg><b>claim.exe</b><span>creator fees, gas paid</span></button>
+          <button class="tile rv" type="button" data-open="privacy"><svg class="ico"><use href="#i-privacy"/></svg><b>privacy.cpl</b><span>the six layers, one by one</span></button>
+          <button class="tile rv" type="button" data-open="strip"><svg class="ico"><use href="#i-strip"/></svg><b>strip.exe</b><span>what a photo says about you</span></button>
+          <button class="tile rv" type="button" data-open="scan"><svg class="ico"><use href="#i-scan"/></svg><b>scan.exe</b><span>what this page talks to</span></button>
+          <button class="tile rv" type="button" data-open="paint"><svg class="ico"><use href="#i-paint"/></svg><b>paint.exe</b><span>draw a coin, launch it</span></button>
+          <button class="tile rv" type="button" data-open="sweeper"><svg class="ico"><use href="#i-sweeper"/></svg><b>sweeper</b><span>clear the board of trackers</span></button>
+          <button class="tile rv" type="button" data-open="cd"><svg class="ico"><use href="#i-cd"/></svg><b>cd player</b><span>the soundtrack, made by code</span></button>
+          <button class="tile rv" type="button" data-open="cmd"><svg class="ico"><use href="#i-cmd"/></svg><b>cmd.exe</b><span>the same room, typed</span></button>
+          <button class="tile rv" type="button" data-open="readme"><svg class="ico"><use href="#i-readme"/></svg><b>readme.txt</b><span>the whole manual</span></button>
+          <button class="tile rv" type="button" data-open="display"><svg class="ico"><use href="#i-display"/></svg><b>display.cpl</b><span>colours, crt, screen savers</span></button>
+        </div>
+      </section>
+
+      <section class="hs" id="h-public">
+        <header class="hh rv"><span class="hn">07</span><span class="hk">honest about it</span><i></i></header>
+        <h2 class="rv" data-dec>what stays public.</h2>
+        <div class="pubtxt">
+          <p class="rv" data-words>everything on solana is public: the coin, its trades, the creator address, the launch wallet, and the fact that the dao treasury paid for it.</p>
+          <p class="rv" data-words>what is not public is any link from those to you, unless you make one. your IP reaches our host like it does every website; for the daily limit only, a salted hash of it is kept for a day, then deleted.</p>
+          <p class="rv small dim">memecoins are extremely risky and most go to zero. dao is a tool, not financial advice, and it is not affiliated with pump.fun.</p>
+        </div>
+      </section>
+
+      <section class="hs" id="h-faq">
+        <header class="hh rv"><span class="hn">08</span><span class="hk">questions</span><i></i></header>
+        <h2 class="rv" data-dec>asked in room 00.</h2>
+        <div class="faq rv" id="hFaq"></div>
+      </section>
+
+      <footer class="hfoot">
+        <div class="fl"><b>dao<i>_</i></b><span>every launch is a dao.<br>a privacy layer for pump.fun.</span></div>
+        <div class="fr">
+          <button type="button" data-open="launch">launch</button><button type="button" data-open="coins">coins</button><button type="button" data-open="claim">claim</button><button type="button" data-open="readme">readme</button><span id="hX"></span><button type="button" id="hRoom"><svg class="ico"><use href="#i-door"/></svg>back to room 00</button>
+        </div>
+        <div class="fb">no cookies · no analytics · this page only talks to itself</div>
+      </footer>
+    </div>
+
+    <div id="wins">
     <!-- launch.exe -->
     <section class="w" id="w-launch" data-app="launch" data-title="launch.exe — new coin wizard" data-icon="launch" style="--ww:820px;--wh:600px">
       <div class="wb wiz">
@@ -239,12 +258,12 @@
                 <span class="hint">secret key · click to reveal · never share it</span><div class="sec" id="kSec">…</div>
                 <div class="row"><button class="bt" type="button" id="kDl">save key file…</button><button class="bt" type="button" id="kCopy">copy secret</button><button class="bt" type="button" id="kNew">new key</button></div>
               </div>
-              <div class="note"><img src="/assets/img/ico-warn-16.png" alt="">this key is the only way to claim the coin's fees. dao never sees it and cannot recover it. it imports into phantom or solflare.</div>
+              <div class="note"><svg class="ico"><use href="#i-warn"/></svg>this key is the only way to claim the coin's fees. dao never sees it and cannot recover it. it imports into phantom or solflare.</div>
               <label class="cb"><input type="checkbox" id="kSaved"> i saved my creator key</label>
             </div>
             <div id="ownBox" hidden>
               <label class="field"><span>your own creator address</span><input class="in" id="fOwn" autocomplete="off" placeholder="a solana address you control"></label>
-              <div class="note"><img src="/assets/img/ico-warn-16.png" alt="">an address you already use links the coin to you. that skips two of the six layers.</div>
+              <div class="note"><svg class="ico"><use href="#i-warn"/></svg>an address you already use links the coin to you. that skips two of the six layers.</div>
             </div>
             <div id="walletBox" hidden>
               <div class="gb"><div class="lg">wallet</div>
@@ -254,7 +273,7 @@
                   <label class="field"><span>dev buy · optional · SOL</span><input class="in" id="wBuy" type="number" min="0" max="10" step="0.01" inputmode="decimal" placeholder="0 = no dev buy"></label>
                 </div>
               </div>
-              <div class="note"><img src="/assets/img/ico-warn-16.png" alt="">your wallet signs and pays the launch (a little SOL, plus any dev buy). it becomes the creator and shows as the dev on the chart, so this coin is linked to that wallet. no daily limit.</div>
+              <div class="note"><svg class="ico"><use href="#i-warn"/></svg>your wallet signs and pays the launch (a little SOL, plus any dev buy). it becomes the creator and shows as the dev on the chart, so this coin is linked to that wallet. no daily limit.</div>
             </div>
             <div class="err" id="e2"></div>
             <div class="navrow"><span class="grow"></span><button class="bt" type="button" data-back>&lt; back</button><button class="bt def" type="button" id="n2">next &gt;</button></div>
@@ -381,9 +400,9 @@
     <section class="w" id="w-bin" data-app="bin" data-title="recycle bin" data-icon="bin" style="--ww:520px;--wh:300px">
       <div class="wb list">
         <table class="tbl"><thead><tr><th>name</th><th>original location</th><th>size</th></tr></thead><tbody>
-          <tr class="hov" data-msg="name"><td><img src="/assets/img/ico-readme-16.png" alt=""> your_name.txt</td><td>C:\YOU</td><td>0 KB</td></tr>
-          <tr class="hov" data-msg="logs"><td><img src="/assets/img/ico-readme-16.png" alt=""> visitor_logs.txt</td><td>C:\DAO</td><td>0 KB</td></tr>
-          <tr class="hov" data-msg="dev"><td><img src="/assets/img/ico-coins-16.png" alt=""> dev_bag.tok</td><td>C:\DAO\COINS</td><td>0 KB</td></tr>
+          <tr class="hov" data-msg="name"><td><svg class="ico"><use href="#i-readme"/></svg> your_name.txt</td><td>C:\YOU</td><td>0 KB</td></tr>
+          <tr class="hov" data-msg="logs"><td><svg class="ico"><use href="#i-readme"/></svg> visitor_logs.txt</td><td>C:\DAO</td><td>0 KB</td></tr>
+          <tr class="hov" data-msg="dev"><td><svg class="ico"><use href="#i-coin"/></svg> dev_bag.tok</td><td>C:\DAO\COINS</td><td>0 KB</td></tr>
         </tbody></table>
       </div>
       <div class="sbar"><span>3 object(s) · 0 bytes</span><span>emptied, on purpose</span></div>
@@ -420,13 +439,13 @@
     <!-- display properties -->
     <section class="w" id="w-display" data-app="display" data-title="display properties" data-icon="display" style="--ww:440px;--wh:560px">
       <div class="wb props">
-        <div class="tabs" id="dtabs" role="tablist"><button type="button" data-t="bg" class="on">background</button><button type="button" data-t="saver">screen saver</button><button type="button" data-t="look">appearance</button></div>
+        <div class="tabs" id="dtabs" role="tablist"><button type="button" data-t="bg" class="on">home</button><button type="button" data-t="saver">screen saver</button><button type="button" data-t="look">appearance</button></div>
         <div class="tabbody sunk-soft dbody">
           <div class="mon"><div class="mscr"><canvas id="dprev" width="232" height="160"></canvas></div><div class="mneck"></div><div class="mfoot"></div></div>
           <div class="dpane" data-p="bg">
-            <div class="lg2">wallpaper</div>
+            <div class="lg2">the pc on the home screen</div>
             <label class="cb rad"><input type="radio" name="wall" value="pc"> ascii pc <span class="dim">(live, three.js)</span></label>
-            <label class="cb rad"><input type="radio" name="wall" value="none"> none <span class="dim">(clean and dark)</span></label>
+            <label class="cb rad"><input type="radio" name="wall" value="none"> off <span class="dim">(calmer, lighter)</span></label>
           </div>
           <div class="dpane" data-p="saver" hidden>
             <div class="row"><select class="in sel2" id="dSaver"><option value="layers">layers</option><option value="stars">starfield</option><option value="marquee">marquee (live status)</option><option value="none">(none)</option></select><button class="bt" type="button" id="dTry">preview</button></div>
@@ -443,7 +462,7 @@
     </section>
 
     <!-- coin properties -->
-    <section class="w" id="w-coin" data-app="coin" data-title="coin properties" data-icon="coins" style="--ww:640px;--wh:440px">
+    <section class="w" id="w-coin" data-app="coin" data-title="coin properties" data-icon="coin" style="--ww:640px;--wh:440px">
       <div class="wb coinp">
         <div class="cpl"><pre id="cpAscii" class="cpascii"></pre><img id="cpImg" alt=""></div>
         <div class="cpr"><div class="cpname" id="cpName"></div><dl class="kv" id="cpKv"></dl>
@@ -454,72 +473,54 @@
 
     <!-- run -->
     <section class="w" id="w-run" data-app="run" data-title="run" data-icon="run" style="--ww:430px;--wh:214px">
-      <div class="wb runb"><img src="/assets/img/ico-run.png" alt=""><div><p>type the name of a program, and dao will open it for you.</p>
+      <div class="wb runb"><svg class="ico big"><use href="#i-run"/></svg><div><p>type the name of a program, and dao will open it for you.</p>
         <label class="field"><span>open:</span><input class="in" id="runIn" list="runList" autocomplete="off" spellcheck="false"></label><datalist id="runList"></datalist></div></div>
       <div class="navrow pad"><span class="grow"></span><button class="bt def" type="button" id="runOk">ok</button><button class="bt" type="button" data-close>cancel</button></div>
     </section>
-  </div>
-
-  <div class="menu start" id="startmenu" hidden>
-    <div class="band"><span>dao</span></div>
-    <div class="items">
-      <button type="button" class="sub" data-sub="programs"><img src="/assets/img/ico-launch-16.png" alt="">programs<span class="arr">▸</span></button>
-      <button type="button" class="sub" data-sub="settings"><img src="/assets/img/ico-display-16.png" alt="">settings<span class="arr">▸</span></button>
-      <button type="button" data-open="readme"><img src="/assets/img/ico-readme-16.png" alt="">help</button>
-      <button type="button" data-open="run"><img src="/assets/img/ico-run-16.png" alt="">run…</button>
-      <hr>
-      <button type="button" data-open="welcome"><img src="/assets/img/ico-pc-16.png" alt="">welcome</button>
-      <button type="button" id="shutBtn"><img src="/assets/img/ico-warn-16.png" alt="">shut down…</button>
     </div>
-  </div>
-  <div class="menu subm" id="sub-programs" hidden>
-    <button type="button" data-open="launch"><img src="/assets/img/ico-launch-16.png" alt="">launch a coin</button>
-    <button type="button" data-open="coins"><img src="/assets/img/ico-coins-16.png" alt="">coins</button>
-    <button type="button" data-open="claim"><img src="/assets/img/ico-claim-16.png" alt="">claim fees</button>
-    <hr>
-    <button type="button" data-open="paint"><img src="/assets/img/ico-paint-16.png" alt="">paint</button>
-    <button type="button" data-open="sweeper"><img src="/assets/img/ico-sweeper-16.png" alt="">tracker sweeper</button>
-    <button type="button" data-open="strip"><img src="/assets/img/ico-strip-16.png" alt="">strip a photo</button>
-    <button type="button" data-open="scan"><img src="/assets/img/ico-scan-16.png" alt="">scan this page</button>
-    <button type="button" data-open="cd"><img src="/assets/img/ico-cd-16.png" alt="">cd player</button>
-    <button type="button" data-open="cmd"><img src="/assets/img/ico-cmd-16.png" alt="">command prompt</button>
-    <button type="button" data-open="readme"><img src="/assets/img/ico-readme-16.png" alt="">notepad</button>
-  </div>
-  <div class="menu subm" id="sub-settings" hidden>
-    <button type="button" data-open="display"><img src="/assets/img/ico-display-16.png" alt="">display</button>
-    <button type="button" data-open="privacy"><img src="/assets/img/ico-privacy-16.png" alt="">privacy</button>
-    <button type="button" data-open="pc"><img src="/assets/img/ico-pc-16.png" alt="">system</button>
-    <hr>
-    <button type="button" data-act="saver"><img src="/assets/img/ico-display-16.png" alt="">screen saver now</button>
-  </div>
-  <div class="menu ctx" id="ctx" hidden>
-    <button type="button" data-act="arrange">arrange icons</button><button type="button" data-act="refresh">refresh</button><hr><button type="button" data-open="launch">new coin…</button><button type="button" data-open="paint">new drawing…</button><hr><button type="button" data-open="display">properties</button>
-  </div>
-  <div class="menu volpop" id="volPop" hidden>
-    <div class="lg2">volume</div><input type="range" id="volRange" min="0" max="100" aria-label="volume"><label class="cb"><input type="checkbox" id="volMute"> mute</label>
-  </div>
+  </main>
+
+  <footer id="ocmd">
+    <label class="oprompt" for="oCmdIn">C:\DAO&gt;</label>
+    <input id="oCmdIn" autocomplete="off" spellcheck="false" placeholder="type a command · help" aria-label="command">
+    <div class="oout" id="oOut" hidden></div>
+    <div class="tasks" id="tasks" aria-label="open windows"></div>
+  </footer>
+
+  <nav id="otabs" aria-label="apps">
+    <button type="button" data-open="home"><svg class="ico"><use href="#i-home"/></svg><span>home</span></button>
+    <button type="button" data-open="launch"><svg class="ico"><use href="#i-launch"/></svg><span>launch</span></button>
+    <button type="button" data-open="coins"><svg class="ico"><use href="#i-coins"/></svg><span>coins</span></button>
+    <button type="button" data-open="claim"><svg class="ico"><use href="#i-claim"/></svg><span>claim</span></button>
+    <button type="button" id="tabApps"><svg class="ico"><use href="#i-apps"/></svg><span>apps</span></button>
+  </nav>
+
   <div class="menu clockpop" id="clockPop" hidden>
     <div class="cpbig" id="cpLocal">--:--:--</div><div class="dim" id="cpDate"></div><hr>
     <div class="cprow"><span>utc</span><b id="cpUtc">--:--:--</b></div>
+    <div class="cprow"><span>room 00</span><b>23:58, always</b></div>
   </div>
+  <div class="snapg" id="snapg" aria-hidden="true"></div>
   <div class="balloon" id="balloon" hidden><button class="bx" type="button" aria-label="close">×</button><b id="balT"></b><span id="balB"></span></div>
-
-  <footer class="taskbar">
-    <button class="startbtn" id="startBtn" type="button" aria-expanded="false"><img src="/assets/img/ico-pc-16.png" alt="">start</button>
-    <div class="ql" aria-label="quick launch"><button type="button" data-open="launch" data-tip="launch a coin"><img src="/assets/img/ico-launch-16.png" alt=""></button><button type="button" data-open="coins" data-tip="coins.db"><img src="/assets/img/ico-coins-16.png" alt=""></button><button type="button" data-open="paint" data-tip="paint"><img src="/assets/img/ico-paint-16.png" alt=""></button><button type="button" data-open="cmd" data-tip="command prompt"><img src="/assets/img/ico-cmd-16.png" alt=""></button></div>
-    <div class="tasks" id="tasks"></div>
-    <div class="tray" id="tray"><button class="snd" type="button" id="traySnd" data-tip="sound" aria-label="sound">♪</button><span class="clock" id="clock" data-tip="date and time">--:--</span></div>
-  </footer>
 </div>
 
-<div id="shutdown" hidden><div>it's now safe to turn off<br>your computer.</div><small>click anywhere to restart</small></div>
-<div id="dlg" class="w dlg" hidden role="alertdialog" aria-modal="true"><div class="tb"><span id="dlgT">dao</span><div class="tbb"><button data-x aria-label="close">×</button></div></div><div class="wb dlgb"><img id="dlgI" src="/assets/img/ico-warn.png" alt=""><div id="dlgB"></div></div><div class="navrow" id="dlgA"></div></div>
+<!-- search: every app, every part of home, every command -->
+<div id="pal" hidden role="dialog" aria-modal="true" aria-label="search">
+  <div class="palbox">
+    <div class="palin"><svg class="ico"><use href="#i-search"/></svg><input id="palIn" autocomplete="off" spellcheck="false" placeholder="search apps, pages and commands" aria-label="search"><button class="palx" id="palX" type="button" aria-label="close search">esc</button></div>
+    <div class="palapps" id="palApps"></div>
+    <div class="pallist" id="palList" role="listbox"></div>
+  </div>
+</div>
+
+<div id="shutdown" hidden><div>it's now safe to turn off<br>your computer.</div><small>click anywhere to go back to room 00</small></div>
+<div id="dlg" class="w dlg" hidden role="alertdialog" aria-modal="true"><div class="tb"><svg class="ico"><use href="#i-warn"/></svg><span id="dlgT">dao</span><div class="tbb"><button type="button" data-x aria-label="close">×</button></div></div><div class="wb dlgb"><svg class="ico big" id="dlgI"><use href="#i-warn"/></svg><div id="dlgB"></div></div><div class="navrow" id="dlgA"></div></div>
 <div class="toast" id="toast" role="status"></div>
 <canvas id="saver" hidden aria-hidden="true"></canvas>
 <div class="tip" id="tip" hidden role="tooltip"></div>
 <div class="zoomr" id="zoomr" aria-hidden="true"></div>
 
 <script src="/assets/js/vendor/nacl-fast.min.js"></script>
-<script type="module" src="/assets/js/desk.js?v=22"></script>
+<script type="module" src="/assets/js/desk.js?v=23"></script>
 </body>
 </html>
