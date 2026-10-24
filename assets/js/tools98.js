@@ -164,7 +164,7 @@ export function install(X) {
   hooks.scan = { open: () => scan() };
 
   // ================================================================ cd player
-  const S = X.sound, TR = [['01', 'room 00', 'intro', 'a slow pad and a few notes over the server hum. d minor, 72 bpm.'], ['02', 'the desktop', 'desk', 'the same chords with bass and a soft kick.']];
+  const S = X.sound, TR = [['01', 'room 00', 'intro', 'a slow pad and a few notes over the server hum. d minor, 72 bpm.'], ['02', 'dao os', 'desk', 'the same chords with bass and a soft kick.']];
   let cur = S && S.sceneName && S.sceneName() === 'intro' ? 0 : 1, t0 = 0, raf = 0, open = false, peaks = new Array(28).fill(0);
   const cv = $('#cdViz'), g = cv.getContext('2d');
   const fmt = s => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Math.floor(s % 60)).padStart(2, '0')}`;

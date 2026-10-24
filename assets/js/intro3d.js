@@ -1,6 +1,6 @@
-// The way in: a corridor lit red at 23:58, a keycard on the reader, ACCESS GRANTED, the doors of room 00 run into
-// the wall and the strip lights wake down an aisle of servers. From the doorway your scroll walks the aisle: the power
-// cuts out once, someone is standing at the end, the lights come back. At the end the beige PC boots. Enter dives in.
+// The way in, as one moving shot: a corridor lit red at 23:58, a keycard on the reader, ACCESS GRANTED, the doors of room 00
+// run into the wall and the strip lights catch down an aisle of servers. Walking it, the power cuts out once and someone is
+// standing at the end; the lights come back, the bench lamp, then the beige PC boots. Click its screen to go in.
 import * as THREE from './vendor/three.module.min.js';
 import { RoundedBoxGeometry } from './vendor/RoundedBoxGeometry.js';
 import { EffectComposer } from './vendor/EffectComposer.js';
@@ -22,8 +22,8 @@ const easeOut = k => 1 - Math.pow(1 - k, 3);
 const F = -.78, CEIL = 2.18, CORR = 2.0, DOOR_Z = 11.2, WT = .2, OW = .75, OH = 2.2;
 const RW = .6, RD = 1.05, RH = 2.0, AISLE = .9, ROW_Z0 = 2.3, ROW_N = 14, END_Z = -.74, END_N = 8, ROOM_X = 2.7, BACK_Z = -1.85;
 const STRIPS = 7, STRIP_Z = i => 10.15 - i * 1.18;
-// the film, in seconds: the card, the reader, the doors, the lights, the lamp, the CRT, the boot
-const TL = { cardIn: 1.7, tap: 2.2, verify: 2.5, cardOut: 2.6, grant: 3.2, door: 3.45, strips: 4.25, gap: .36 };
+// the film, in seconds: the card, the reader, the doors, the lights, the power cut, the lamp, the CRT
+const TL = { cardIn: 2.5, tap: 3.0, verify: 3.3, cardOut: 3.4, grant: 4.0, door: 4.25, strips: 5.05, gap: .36, bo: 8.5, lamp: 9.6, crt: 10.1 };
 const DEAD = 3, BAD = 5;   // one tube never catches, one never settles
 const LAYERS = [['01', 'site', 'no trackers, no cookies'], ['02', 'connect', 'optional, never required'], ['03', 'key', 'creator key born here'],
   ['04', 'launcher', 'fresh wallet, every launch'], ['05', 'gas', 'claims paid by the treasury'], ['06', 'files', 'image metadata stripped']];
@@ -99,22 +99,29 @@ class Terminal {
       if (blink) { g.fillStyle = C.ink; g.fillRect(x + 2, y + 6, 15, this.LH - 8); }
     }
   }
-  drawTunnel(g) {                                          // six layers rushing past, the last thing you see before the desktop
-    const W = this.W, H = this.H, k = this.tunnel;
+  drawTunnel(g) {                                          // into the machine: frames of characters rush past while the mark grows in the middle
+    const W = this.W, H = this.H, k = this.tunnel, CH = '01dao#%/\\<>_:;', fr = Math.floor(performance.now() / 70);
     g.fillStyle = '#010605'; g.fillRect(0, 0, W, H);
-    g.textBaseline = 'top';
-    for (let i = LAYERS.length - 1; i >= 0; i--) {
-      const z = 1.1 + i * .62 - k * 4.9; if (z <= .06) continue;
-      const s = .3 / z, w = W * s, h = H * s, a = Math.min(1, (4.4 - z) / 2) * Math.min(1, z / .3);
+    g.textBaseline = 'middle'; g.textAlign = 'center';
+    for (let i = 15; i >= 0; i--) {
+      const z = 1.6 + i * .36 - k * 5.6; if (z <= .07) continue;
+      const s = .3 / z, hw = W * s, hh = H * s, a = Math.min(1, (6.2 - z) / 2.4) * Math.min(1, z / .22);
       if (a <= 0) continue;
-      const col = i % 2 ? '98,240,200' : '242,184,75';
-      g.strokeStyle = `rgba(${col},${a})`; g.lineWidth = Math.max(2, 5 / z); g.shadowColor = `rgb(${col})`; g.shadowBlur = 26;
-      g.strokeRect(W / 2 - w, H / 2 - h, w * 2, h * 2);
-      g.font = `${Math.round(Math.max(16, 30 / z))}px VT, monospace`; g.fillStyle = `rgba(${col},${a})`;
-      g.fillText(`${LAYERS[i][0]} ${LAYERS[i][1]}`, W / 2 - w + 10 / z, H / 2 - h + 8 / z);
+      const px = Math.max(9, Math.min(64, 17 * s / .19)), step = px * 1.15, gold = i % 4 === 0;
+      g.font = `${Math.round(px)}px VT, monospace`; g.fillStyle = gold ? `rgba(242,184,75,${a})` : `rgba(98,240,200,${a * .85})`;
+      g.shadowColor = gold ? '#f2b84b' : '#62f0c8'; g.shadowBlur = gold ? 14 : 8;
+      const nx = Math.max(2, Math.round(hw * 2 / step)), ny = Math.max(2, Math.round(hh * 2 / step));
+      for (let j = 0; j <= nx; j++) for (const y of [H / 2 - hh, H / 2 + hh]) { const c = CH[(hsh(i * 97 + j, y > H / 2 ? 1 : 2) * CH.length + (hsh(i, j + fr) < .08 ? fr : 0)) % CH.length | 0]; g.fillText(c, W / 2 - hw + j * (hw * 2 / nx), y); }
+      for (let j = 1; j < ny; j++) for (const x of [W / 2 - hw, W / 2 + hw]) { const c = CH[(hsh(i * 89 + j, x > W / 2 ? 3 : 4) * CH.length + (hsh(i + 9, j + fr) < .08 ? fr : 0)) % CH.length | 0]; g.fillText(c, x, H / 2 - hh + j * (hh * 2 / ny)); }
     }
+    g.shadowBlur = 0; g.textAlign = 'left';
+    // the mark: d a o in the same blocks as the logo, growing as you go in
+    const P = 4 + k * k * 46, rows = Array(9).fill(''); for (const ch of 'dao') GLYPHS[ch].forEach((row, r) => rows[r] += row + '..');
+    const w0 = rows[0].length * P, x0 = W / 2 - w0 / 2 + P, y0 = H / 2 - 4.5 * P;
+    g.fillStyle = '#f2b84b'; g.shadowColor = '#f2b84b'; g.shadowBlur = 20 + k * 30;
+    rows.forEach((row, ry) => [...row].forEach((c, rx) => { if (c === 'X') g.fillRect(x0 + rx * P, y0 + ry * P, P - Math.max(1, P * .08), P - Math.max(1, P * .08)); }));
     g.shadowBlur = 0;
-    if (k > .82) { g.fillStyle = `rgba(232,255,246,${(k - .82) / .18})`; g.fillRect(0, 0, W, H); }
+    if (k > .8) { g.fillStyle = `rgba(232,255,246,${(k - .8) / .2})`; g.fillRect(0, 0, W, H); }
   }
   glass(g) {
     const W = this.W, H = this.H;
@@ -665,25 +672,34 @@ function track(K) {
   const last = K[n - 1];
   return { at: t => ({ pos: V(px(t), py(t), pz(t)), look: V(lx(t), ly(t), lz(t)), fov: fv(t) }), end: [last[1], last[2]], fov1: last[3], T: last[0] };
 }
-// two tracks: the access film (corridor, reader, the doorway), then the walk down the aisle, which your scroll drives
-const A_END = 5.9;
+// ---------------------------------------------------------------- the film: one camera move, the corridor to the pc
+// It moves by itself: down the corridor to the reader, the card, the doors, then the walk down the aisle while the strips
+// catch. Halfway down it the power cuts out and somebody is standing at the end; the lights come back, then the lamp,
+// the CRT and the boot. A key, a click or a scroll skips it and glides you to the pc.
+const END = 15;           // the camera reaches the pc
+const BOOT_K = .8;        // the boot runs a touch quicker than a real one
+const STEP_M = 1.43;      // steps per metre walked
 function shots(portrait) {
-  const K = portrait ? {
-    a: [[0, V(.36, .92, 16.2), V(.36, .5, 11.2), 58], [1.0, V(.55, .86, 15.0), V(.62, .52, 11.2), 56], [2.15, V(1.0, .66, 12.6), V(1.05, .52, 11.2), 50],
-      [3.3, V(.97, .68, 12.5), V(1.02, .54, 11.2), 50], [4.6, V(.3, .86, 12.4), V(0, .72, 9), 58], [A_END, V(.02, .92, 10.85), V(0, .72, 6), 60]],
-    w: [[A_END, V(.02, .92, 10.85), V(0, .72, 6), 60], [8.9, V(.04, .96, 7.8), V(0, .6, 2), 56], [11.9, V(.03, .95, 5.1), V(0, .5, .2), 50], [15.3, V(0, .86, 2.78), V(0, .5, 0), 46]],
-  } : {
-    a: [[0, V(.42, .9, 15.3), V(.4, .56, 11.2), 44], [1.0, V(.55, .85, 14.2), V(.62, .54, 11.2), 42], [2.15, V(.78, .74, 12.48), V(.98, .52, 11.2), 40],
-      [3.3, V(.72, .75, 12.32), V(.86, .55, 11.2), 40], [4.6, V(.2, .86, 12.0), V(0, .72, 9), 45], [A_END, V(.02, .92, 10.55), V(0, .72, 6), 48]],
-    w: [[A_END, V(.02, .92, 10.55), V(0, .72, 6), 48], [8.9, V(.05, .95, 7.2), V(0, .6, 2), 46], [11.9, V(.04, .93, 4.2), V(-.12, .52, .2), 38], [15.3, V(.04, .84, 2.5), V(-.32, .5, .02), 31]],   // the pc sits right of centre so the last panel can sit left of it
-  };
-  const a = track(K.a), w = track(K.w), d = K.a[K.a.length - 1];
-  return { a, w, door: [d[1], d[2], d[3]], end: w.end, fov1: w.fov1, T: w.T };
+  const K = portrait ? [
+    [0, V(.3, .96, 16.6), V(.36, .55, 11.2), 60], [1.5, V(.5, .88, 14.8), V(.6, .53, 11.2), 57], [2.9, V(1.0, .66, 12.6), V(1.05, .52, 11.2), 50],
+    [4.05, V(.97, .68, 12.5), V(1.02, .54, 11.2), 50], [5.2, V(.3, .86, 12.4), V(0, .72, 9), 58], [6.4, V(.02, .92, 10.85), V(0, .72, 6), 60],
+    [9.2, V(.04, .96, 7.8), V(0, .6, 2), 56], [12.2, V(.03, .95, 5.1), V(0, .5, .2), 50], [END, V(0, .86, 2.78), V(0, .5, 0), 46],
+  ] : [
+    [0, V(.2, .98, 16.4), V(.32, .62, 11.2), 50], [1.5, V(.45, .88, 14.4), V(.58, .57, 11.2), 45], [2.9, V(.76, .76, 12.55), V(.96, .52, 11.2), 40],
+    [4.05, V(.72, .76, 12.35), V(.86, .55, 11.2), 40], [5.2, V(.22, .88, 12.0), V(0, .72, 9), 45], [6.4, V(.02, .93, 10.4), V(0, .72, 6), 48],
+    [9.2, V(.05, .95, 7.4), V(0, .62, 2), 46], [12.2, V(.04, .93, 4.4), V(-.04, .53, .2), 38], [END, V(.03, .84, 2.5), V(0, .5, .02), 31],
+  ];
+  const tr = track(K), last = K[K.length - 1];
+  // how far the camera has walked by each moment, so the steps land where it actually moves
+  const N = Math.ceil(END * 60), S = new Float64Array(N + 1); let prev = tr.at(0).pos;
+  for (let i = 1; i <= N; i++) { const p = tr.at(i / 60).pos; S[i] = S[i - 1] + p.distanceTo(prev); prev = p; }
+  const dist = t => { const x = clamp01(t / END) * N, i = Math.min(N - 1, Math.floor(x)); return S[i] + (S[i + 1] - S[i]) * (x - i); };
+  return { at: tr.at, dist, end: [last[1], last[2]], fov1: last[3] };
 }
-// where the walk sets things off, as a share of the scroll: the power cut, the lamp, the CRT, hurrying the boot, the prompt
-const P_BO = .2, P_LAMP = .3, P_CRT = .4, P_RUSH = .93, P_END = .985, BO_LEN = .72;
+const BO_LEN = .72;
+const smooth = (a, b, x) => { const k = clamp01((x - a) / (b - a)); return k * k * (3 - 2 * k); };
 
-// what the room looks like at room time ft: the card in your hand, the leaves, each strip catching, the lamp
+// what the room looks like at film time ft: the card in your hand, the leaves, each strip catching, the lamp
 const CARD_A = V(1.34, .16, 12.3), CARD_B = V(1.06, .44, DOOR_Z + WT / 2 + .06), CARD_C = V(1.4, .1, 12.32);
 function cardPose(ft, o) {
   if (ft < TL.cardIn || ft > TL.cardOut + .55) return false;
@@ -723,9 +739,9 @@ const FilmShader = {
 };
 
 // ---------------------------------------------------------------- run
-// One clock drives the room. It advances at most 1/24 s a frame, so a slow frame slows the film instead of tearing it.
-// The access film plays by itself; after the doorway the camera follows your scroll, smoothed, and the room reacts as you pass.
-export async function run({ canvas, onEnter, onReady, onLeave, onWalk, onGlide, mobile, status, audio }) {
+// Two clocks: the room's own (real time, at most 1/24 s a frame so a slow frame slows the film instead of tearing it) and
+// the film's, which every cue and the camera follow. A skip runs the film clock at 20x while the camera glides to the pc.
+export async function run({ canvas, onEnter, onReady, mobile, status, audio }) {
   try { await Promise.race([document.fonts.load('34px VT'), new Promise(r => setTimeout(r, 1500))]); } catch {}
   const $ = s => document.querySelector(s);
   const intro = $('#intro'), skipBtn = $('#iskip');
@@ -759,9 +775,9 @@ export async function run({ canvas, onEnter, onReady, onLeave, onWalk, onGlide, 
     hid.forEach(o => { o.visible = false; });
   } catch {}
 
-  const st = { t0: 0, clock: 0, phase: 'film', skip: false, blend: null, diveT: 0, diveDur: 2000, cmd: '', done: false, pending: undefined, lamp: 0, crtOn: false,
+  const st = { t0: 0, clock: 0, ft: 0, phase: 'film', skip: false, blend: null, diveT: 0, diveDur: 2000, cmd: '', done: false, pending: undefined, lamp: 0, crtOn: false,
     px: 0, py: 0, mx: 0, my: 0, pressed: [], look: null, posted: false, freeze: null, status: null, hover: false, lean: 0, hddT: 0, lk: 1, lampK: 1, flick: null,
-    skipAt: 0, skipFt: 0, ftOff: 0, red: 0, egg: 0, p: 0, ps: 0, boT: null, lampT: null, crtT: null, rush: false };
+    red: 0, egg: 0, boT: null, lampT: null, stepN: -1, shake: 0 };
   const TMP = new THREE.Object3D();
   const sfx = (n, a) => { try { audio && audio.sfx(n, a); } catch {} };
   const room = (k, s) => { try { audio && audio.room && audio.room(k, s); } catch {} };
@@ -770,7 +786,7 @@ export async function run({ canvas, onEnter, onReady, onLeave, onWalk, onGlide, 
   let NOW = performance.now();
   Promise.resolve(status).then(s => { st.status = s; }).catch(() => {});
   const say = runs => term.push(Array.isArray(runs[0]) ? runs : [[runs[0], runs[1]]]);
-  const hdd = on => { P.hddMat.color.setHex(on ? 0xffb648 : 0x2a1c08); if (on && NOW - st.hddT > 260) { st.hddT = NOW; sfx('hdd'); } };
+  const hdd = on => { P.hddMat.color.setHex(on ? 0xffb648 : 0x2a1c08); if (on && !st.skip && NOW - st.hddT > 260) { st.hddT = NOW; sfx('hdd'); } };
   function drawBoard(occ, alarm, blink) {                 // ROOM 00 · LIVE: how many are in here, and who
     const B = P.board, key = occ + '|' + alarm + '|' + (alarm ? Math.floor(NOW / 90) : blink); if (key === B.key) return; B.key = key;
     const g = B.g, W = B.W, H = B.H, hot = alarm ? C.red : C.ok;
@@ -787,39 +803,30 @@ export async function run({ canvas, onEnter, onReady, onLeave, onWalk, onGlide, 
     B.t.needsUpdate = true;
   }
 
-  // ---- the queue: cues at room times; later events are added to the unplayed tail, never before what already played
+  // ---- the cue sheet: everything the film does, laid out in film time. sounds are soft: a skip passes over them
   const Q = []; let qi = 0;
-  const ev = (ms, fn, soft) => Q.push({ ms, fn, soft });
-  const add = items => { const tail = Q.splice(qi).concat(items); tail.sort((a, b) => a.ms - b.ms); Q.push(...tail); };
-  const later = (sec, fn, soft) => add([{ ms: NOW - st.t0 + sec * 1000, fn, soft }]);
-  function flush() {
-    const t = NOW - st.t0; let n = 0;
-    while (qi < Q.length && (st.skip || Q[qi].ms <= t || (st.rush && n < 2))) { const e = Q[qi++]; if (Q[qi - 1].ms > t) n++; if (!((st.skip || st.rush) && e.soft && e.ms > t)) e.fn(); }
-  }
-  const cue = (sec, name, arg) => ev(sec * 1000, () => sfx(name, arg), true);
-  // the access film: the card, the reader, the doors, the strips catching one by one
+  const ev = (sec, fn, soft) => Q.push({ ms: Math.round(sec * 1000), fn, soft });
+  const cue = (sec, name, arg) => ev(sec, () => sfx(name, arg), true);
+  function flush(ms) { while (qi < Q.length && Q[qi].ms <= ms) { const e = Q[qi++]; if (!(st.skip && e.soft)) e.fn(); } }
+  // the card, the reader, the doors, the strips catching one by one
   cue(TL.tap, 'card'); cue(TL.verify + .02, 'tick'); cue(TL.verify + .18, 'tick'); cue(TL.verify + .34, 'tick'); cue(TL.grant, 'grant');
-  cue(TL.door, 'door'); ev(TL.door * 1000, () => room(1));
+  cue(TL.door, 'door'); ev(TL.door, () => { room(1); if (!st.skip) st.shake = Math.max(st.shake, .5); });
   for (let i = 0; i < STRIPS; i++) cue(TL.strips + i * TL.gap, 'light', i);
   cue(TL.strips + DEAD * TL.gap + .5, 'zap');
-
-  // the power cut, set off by walking far enough in
-  function brownout(ft) {
-    if (st.boT != null) return; st.boT = ft;
-    sfx('brown'); room(.25, .3);
-    later(BO_LEN, () => { sfx('restore'); room(1, 1.2); }, false);
-    for (let i = 0; i < STRIPS; i++) if (i !== DEAD) later(BO_LEN + i * .05 + .02, () => sfx('tick'), true);
-  }
-  // the CRT: power, then the boot, queued from this moment
-  function power(fast) {
-    if (st.crtT != null) { if (fast) st.rush = true; return; }
-    const base = st.crtT = NOW - st.t0, items = [];
-    const at0 = (ms, fn) => items.push({ ms: base + ms, fn });
-    at0(0, () => { sfx('power'); st.crtOn = true; P.ledMat.color.setHex(0x3dff8a); P.monLed.color.setHex(0xffb648); term.off = false; term.power = 0; term.dirty = true; });
+  // halfway down the aisle the power goes. a skip passes over it
+  ev(TL.bo, () => { if (st.skip) return; st.boT = TL.bo; st.shake = 1; sfx('brown'); room(.25, .3); });
+  ev(TL.bo + BO_LEN, () => { if (st.boT == null) return; if (!st.skip) sfx('restore'); room(1, 1.2); });
+  for (let i = 0; i < STRIPS; i++) if (i !== DEAD) cue(TL.bo + BO_LEN + i * .05 + .02, 'tick');
+  ev(TL.lamp, () => { st.lampT = TL.lamp; if (!st.skip) sfx('click'); });
+  // the CRT: power, then the boot
+  let T = 700;
+  {
+    const at0 = (ms, fn) => ev(TL.crt + ms / 1000, fn);
+    at0(0, () => { if (!st.skip) sfx('power'); st.crtOn = true; P.ledMat.color.setHex(0x3dff8a); P.monLed.color.setHex(0xffb648); term.off = false; term.power = 0; term.dirty = true; });
     for (let i = 1; i <= 20; i++) at0(i * 23, () => { term.power = i / 20; term.dirty = true; });
-    at0(21 * 23, () => { term.power = 1; term.wobble = st.rush ? 0 : 1; term.dirty = true; });
-    let T = 700; const at = (d, fn) => { T += d; at0(T, fn); };
-    at(0, () => { hdd(true); sfx('beep'); say([['DAO BIOS v1.98  ', C.ink], ['(c) nobody', C.dim]]); });
+    at0(21 * 23, () => { term.power = 1; term.wobble = st.skip ? 0 : 1; term.dirty = true; });
+    const at = (d, fn) => { T += d * BOOT_K; at0(T, fn); };
+    at(0, () => { hdd(true); if (!st.skip) sfx('beep'); say([['DAO BIOS v1.98  ', C.ink], ['(c) nobody', C.dim]]); });
     at(130, () => say([['cpu: ', C.dim], ['anonymous @ 33 MHz', C.ink]]));
     let mi; at(110, () => { mi = term.push([['memory test: ', C.dim], ['0K', C.ok]]); });
     for (let m = 8192; m <= 65536; m += 8192) at(24, () => term.set(mi, [['memory test: ', C.dim], [m + 'K' + (m === 65536 ? ' ok' : ''), C.ok]]));
@@ -828,7 +835,7 @@ export async function run({ canvas, onEnter, onReady, onLeave, onWalk, onGlide, 
       const dots = '.'.repeat(Math.max(3, 30 - a.length)) + ' '; let i;
       at(80, () => { i = term.push([[a + ' ', C.ink], [dots, C.dim]]); hdd(true); });
       at(170, () => { term.set(i, [[a + ' ', C.ink], [dots, C.dim], [b, col]]); hdd(false); });
-      if (fix) at(360, () => { term.set(i, [[a + ' ', C.ink], [dots, C.dim], [fix, C.ok]]); term.glitch = st.rush ? 0 : .35; });
+      if (fix) at(360, () => { term.set(i, [[a + ' ', C.ink], [dots, C.dim], [fix, C.ok]]); term.glitch = st.skip ? 0 : .35; });
     }
     at(100, () => { say(['', C.ink]); say([['press ', C.dim], ['DEL', C.ink], [' to enter setup. nobody ever does.', C.dim]]); });
     at(480, () => term.clear());
@@ -839,12 +846,12 @@ export async function run({ canvas, onEnter, onReady, onLeave, onWalk, onGlide, 
       at(200, () => { i = term.push([[label, C.ink], [text, C.dim], ['[    ]', C.dim]]); });
       for (let s = 0; s < 4; s++) at(50, () => { term.set(i, [[label, C.ink], [text, C.dim], ['[ ' + '|/-\\'[s % 4] + '  ]', C.gold]]); hdd(s % 2 === 0); });
       at(50, () => { term.set(i, [[label, C.ink], [text, C.dim], ['[ ', C.dim], ['ok', C.ok], [' ]', C.dim]]); hdd(false); });
-      T -= 150;
+      T -= 150 * BOOT_K;
     }
     at(220, () => { say(['', C.ink]); say([[' 6/6 layers up.', C.ok], [' nothing here knows your name.', C.dim]]); });
-    at(700, () => { term.clear(); term.glitch = st.rush ? 0 : 1; });
+    at(700, () => { term.clear(); term.glitch = st.skip ? 0 : 1; });
     for (let k = 1; k <= 22; k++) at(k === 1 ? 140 : 18, () => { term.logo = Math.min(1, k / 22); term.dirty = true; });
-    at(30, () => { term.logo = 1; term.glitch = st.rush ? 0 : .5; });
+    at(30, () => { term.logo = 1; term.glitch = st.skip ? 0 : .5; });
     let tag; at(40, () => { tag = term.push([['', C.ink]]); });
     const T1 = 'every launch is a ', T2 = 'a privacy layer for pump.fun.';
     for (let i = 1; i <= T1.length; i++) at(20, () => term.set(tag, [[T1.slice(0, i), C.ink]]));
@@ -855,29 +862,28 @@ export async function run({ canvas, onEnter, onReady, onLeave, onWalk, onGlide, 
       say(['', C.ink]);
       say([['type ', C.dim], ['launch', C.gold], [', ', C.dim], ['coins', C.gold], [', ', C.dim], ['claim', C.gold], [', ', C.dim], ['help', C.gold], [' or press enter.', C.dim]]);
       say(['', C.ink]);
-      term.prompt = true; st.posted = true; st.rush = false;
+      term.prompt = true; st.posted = true;
     });
-    add(items);
-    if (fast) st.rush = true;
   }
+  const FT_POST = TL.crt + T / 1000;              // the prompt is up
+  Q.sort((a, b) => a.ms - b.ms);
 
-  // ---- phases: film (the access) → walk (your scroll) ⇄ ready (at the PC, booted) → dive
-  function enterWalk(ft) {
+  // ---- phases: film (moves by itself) → ready (at the pc, booted) → dive
+  function ready() {
     if (st.phase !== 'film') return;
-    if (st.skip) { st.ftOff = Math.max(0, ft - st.clock); st.skip = false; }
-    st.blend = null; st.phase = 'walk'; intro.classList.add('walk');
-    try { onWalk && onWalk(); } catch {}
+    st.phase = 'ready'; intro.classList.add('ready'); try { onReady && onReady(); } catch {}
     if (st.pending !== undefined) { const c = st.pending; st.pending = undefined; dive(c); }
   }
-  function ready() { if (st.phase !== 'walk') return; st.phase = 'ready'; intro.classList.add('ready'); try { onReady && onReady(); } catch {} }
-  function unready() { if (st.phase !== 'ready') return; st.phase = 'walk'; intro.classList.remove('ready'); try { onLeave && onLeave(); } catch {} }
-  // skip: only the access film skips. the room fast-forwards and the camera glides to the doorway
+  // skip: the room fast-forwards and the camera glides to the pc, through the doorway if it is still outside
   function skip() {
     if (st.skip || st.phase !== 'film') return;
-    st.skip = true; st.skipAt = NOW; st.skipFt = st.clock;
-    const from = cam.position.clone(), d = S.door;
-    st.blend = { t: NOW, from, look: (st.look || d[1]).clone(), fov: cam.fov, dur: 650 + from.distanceTo(d[0]) * 160, to: d[0], toLook: d[1], toFov: d[2] };
-    room(1);
+    st.skip = true; room(1); sfx('restore');
+    const p0 = cam.position.clone(), l0 = (st.look || S.end[1]).clone(), f0 = cam.fov, p2 = S.end[0].clone(), l2 = S.end[1].clone(), f2 = S.fov1;
+    const K = [[0, p0, l0, f0]];
+    if (p0.z > DOOR_Z - .4) { const D = V(0, .9, DOOR_Z - .5), d1 = p0.distanceTo(D), d2 = D.distanceTo(p2); K.push([d1 / (d1 + d2), D, V(0, .68, 6), (f0 + f2) / 2 + 6]); }
+    K.push([1, p2, l2, f2]);
+    let len = 0; for (let i = 1; i < K.length; i++) len += K[i][1].distanceTo(K[i - 1][1]);
+    st.blend = { t: NOW, tr: track(K), dur: 900 + len * 85 };
   }
 
   // ---- typing presses the 3D keys
@@ -909,21 +915,18 @@ export async function run({ canvas, onEnter, onReady, onLeave, onWalk, onGlide, 
     if (c === 'logs' || c === 'log') { say(['there are no logs. that is the point.', C.dim]); return; }
     say(['bad command or file name. type help.', C.dim]);
   }
-  // the dive works from anywhere past the doors: from the aisle it is a rush down it and into the screen
+  // into the screen. from the film it skips first and dives the moment the prompt is up
   function dive(cmd) {
     if (st.phase === 'dive' || st.done) return;
     if (st.phase === 'film') { st.pending = cmd; skip(); return; }
-    if (!st.crtOn) { power(true); st.crtOn = true; term.off = false; term.power = 1; term.dirty = true; }
-    if (st.lampT == null) st.lampT = st.clock + st.ftOff;
     st.freeze = null; st.phase = 'dive'; st.cmd = cmd; st.diveT = NOW; st.diveFrom = cam.position.clone(); st.diveLook = (st.look || S.end[1]).clone(); term.prompt = false;
-    st.diveDur = Math.min(3200, 2000 + st.diveFrom.distanceTo(SCREEN_C) * 110);
+    st.diveDur = Math.min(2000, 1250 + st.diveFrom.distanceTo(SCREEN_C) * 100);
     say([['entering dao', C.gold], [' …', C.dim]]); hdd(true); sfx('dive'); canvas.style.cursor = 'default';
     intro.classList.add('diving');
   }
   function key(e) {
     if (st.done) return;
     if (st.phase === 'film') { if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') { e.preventDefault(); skip(); } return; }
-    if (st.phase === 'walk') { if (e.key === 'Enter') { e.preventDefault(); try { onGlide && onGlide(); } catch {} } return; }
     if (st.phase !== 'ready') return;
     if (e.key === 'Escape') { e.preventDefault(); dive(''); return; }
     if (e.ctrlKey || e.metaKey || e.altKey) return;
@@ -934,13 +937,13 @@ export async function run({ canvas, onEnter, onReady, onLeave, onWalk, onGlide, 
   addEventListener('keydown', key);
   const pm = e => { st.px = e.clientX / innerWidth * 2 - 1; st.py = e.clientY / innerHeight * 2 - 1; ndc.set(st.px, -st.py); };
   addEventListener('pointermove', pm, { passive: true });
-  canvas.addEventListener('click', e => {             // in the film a click skips; past the doors, clicking the screen pulls you in
+  canvas.addEventListener('click', e => {             // a click on the screen goes in; anywhere else during the film it skips
     ndc.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight * 2 - 1));
-    if (st.phase === 'film') return skip();
-    if ((st.phase === 'ready' || st.phase === 'walk') && onScreen()) dive('');
+    if (onScreen()) return dive('');
+    if (st.phase === 'film') skip();
   });
   if (skipBtn) skipBtn.onclick = e => { e.stopPropagation(); skip(); };
-  // trying to scroll during the film means "let me in": it fast-forwards to the doorway, where scrolling takes over
+  // trying to scroll during the film means "let me in"
   const wheel = e => { if (st.phase === 'film' && Math.abs(e.deltaY) > 3) skip(); };
   let ty0 = null; const ts = e => { ty0 = e.touches[0] ? e.touches[0].clientY : null; };
   const tm = e => { if (st.phase === 'film' && ty0 != null && e.touches[0] && Math.abs(e.touches[0].clientY - ty0) > 24) skip(); };
@@ -949,10 +952,9 @@ export async function run({ canvas, onEnter, onReady, onLeave, onWalk, onGlide, 
   let last = performance.now(), started = false;
   const CP = { p: new THREE.Vector3(), rx: 0, rz: 0 };
   const PANEL = { idle: [2.4, .16, .1, 0xff3020], read: [2.4, 1.3, .2, 0xffa030], verify: [2.4, 1.3, .2, 0xffa030], granted: [.3, 2.4, .9, 0x40ffb0] };
-  // seek/shot/walk are for checking single frames; the site never calls them
-  const api = { go: c => dive(c), phase: () => st.phase, alarm: () => st.red > .4, skip, scroll: p => { st.p = clamp01(p); }, camZ: () => cam.position.z, posted: () => st.posted,
-    seek: (sec, freeze) => { st.clock = sec; st.freeze = freeze ? sec : null; }, hold: ms => { st.hold = ms == null ? null : st.diveT + ms; },
-    walk: p => { st.p = st.ps = clamp01(p); },
+  // seek/shot/view are for checking single frames; the site never calls them
+  const api = { go: c => dive(c), phase: () => st.phase, alarm: () => st.red > .4, skip, posted: () => st.posted, ft: () => st.ft, end: () => FT_POST,
+    seek: (sec, freeze) => { st.clock = st.ft = sec; st.freeze = freeze ? sec : null; }, hold: ms => { st.hold = ms == null ? null : st.diveT + ms; },
     pause: v => { st.paused = !!v; }, view: (p, l, f) => { st.view = p ? { p: V(...p), l: V(...l), f } : null; },
     shot: (sec, q = .93) => { if (sec != null) st.freeze = sec; step(performance.now()); return canvas.toDataURL('image/jpeg', q); },
     termShot: (sec, q = .93) => { st.noRender = true; if (sec != null) st.freeze = sec; step(performance.now()); st.noRender = false; return term.c.toDataURL('image/jpeg', q); },
@@ -974,49 +976,44 @@ export async function run({ canvas, onEnter, onReady, onLeave, onWalk, onGlide, 
   function step(now) {
     if (!started) { started = true; st.t0 = now; last = now; }
     const rdt = Math.min(.25, Math.max(0, (now - last) / 1000)); last = now;
-    if (st.freeze != null) st.clock = st.freeze; else if (st.hold == null) st.clock += Math.min(rdt, 1 / 24);
+    const cdt = Math.min(rdt, 1 / 24);
+    if (st.freeze != null) { st.clock = st.ft = st.freeze; }
+    else if (st.hold == null) { st.clock += cdt; st.ft += cdt * (st.skip ? 20 : 1); if (st.skip) st.ft = Math.min(st.ft, FT_POST + .25); }
     NOW = st.hold != null ? st.hold : st.t0 + st.clock * 1000;
-    const dt = Math.min(.05, rdt), t = st.clock;
-    flush();
-    let ft = st.skip ? Math.min(60, Math.max(t, st.skipFt + (NOW - st.skipAt) * .02)) : t + st.ftOff;   // after a skip the room runs at 20x
-    // camera: the access marks (or a glide to the doorway when skipped), then the aisle at your scroll, a slow breath, the mouse
-    let pos, look, fov;
-    if (st.phase === 'film') {
-      const K = S.a.at(t); pos = K.pos; look = K.look; fov = K.fov;
-      if (st.blend) {
-        const b = ease(clamp01((NOW - st.blend.t) / st.blend.dur));
-        pos = st.blend.from.clone().lerp(st.blend.to, b); look = st.blend.look.clone().lerp(st.blend.toLook, b); fov = st.blend.fov + (st.blend.toFov - st.blend.fov) * b;
-        if (b >= 1 && ft > TL.door + 1.3) { enterWalk(ft); ft = st.clock + st.ftOff; }
-      } else if (t >= A_END) enterWalk(ft);
-    } else {
-      st.ps += (st.p - st.ps) * (st.freeze != null ? 1 : 1 - Math.exp(-dt * 4.2));
-      const K = S.w.at(A_END + st.ps * (S.T - A_END)); pos = K.pos; look = K.look; fov = K.fov;
+    const dt = Math.min(.05, rdt), t = st.clock, ft = st.ft;
+    flush(ft * 1000);
+    // the camera: the film's marks, or the glide when skipped; a walk on top while it moves; the mouse once it has arrived
+    const K = S.at(Math.min(ft, END)); let pos = K.pos, look = K.look, fov = K.fov, walk = 0, ph = 0;
+    if (st.blend) {
+      const u = ease(clamp01((NOW - st.blend.t) / st.blend.dur)), B = st.blend.tr.at(u); pos = B.pos; look = B.look; fov = B.fov;
+      if (u >= 1 && ft >= FT_POST) { st.blend = null; st.skip = false; }
+    } else if (st.phase === 'film' && ft < END) {
+      const v = (S.dist(Math.min(END, ft + .06)) - S.dist(Math.max(0, ft - .06))) / .12;
+      walk = smooth(.28, .72, v); ph = S.dist(ft) * STEP_M;
+      const n = Math.floor(ph);
+      if (n !== st.stepN) { if (st.stepN >= 0 && walk > .35 && st.freeze == null && !st.skip) sfx('step', pos.z > DOOR_Z ? 0 : 1); st.stepN = n; }
+      const bob = (1 + Math.cos(2 * Math.PI * ph)) / 2, sway = Math.sin(Math.PI * ph);
+      pos.y -= .014 * walk * bob; pos.x += .009 * walk * sway; look.y -= .005 * walk * bob;
     }
-    // walking in sets the room off: the power cut, the lamp, the CRT; at the PC, the prompt
-    if (st.phase === 'walk' || st.phase === 'ready') {
-      if (st.boT == null && st.ps > P_BO) brownout(ft);
-      if (st.lampT == null && (st.ps > P_LAMP || (st.boT != null && ft > st.boT + BO_LEN + .3))) { st.lampT = ft; sfx('click'); }
-      if (st.crtT == null && st.ps > P_CRT) power(false);
-      if (!st.posted && st.ps > P_RUSH) power(true);
-      if (st.phase === 'walk' && st.posted && st.ps > P_END) ready();
-      else if (st.phase === 'ready' && st.ps < P_END - .03) unready();
-    }
+    if (st.phase === 'film' && !st.skip && st.posted && ft >= END - .2) ready();
+    if (st.shake > 0) { const s = st.shake * st.shake * .006; pos.x += (hsh(31, Math.floor(t * 60)) - .5) * s; pos.y += (hsh(37, Math.floor(t * 60)) - .5) * s; st.shake = Math.max(0, st.shake - dt * 2.6); }
     if (Math.abs(cam.fov - fov) > .001) { cam.fov = fov; cam.updateProjectionMatrix(); }
     st.mx += (st.px - st.mx) * .04; st.my += (st.py - st.my) * .04;
-    const settle = st.phase === 'film' ? clamp01((t - A_END + 1.2) / 1.2) : 1;
-    if (st.phase === 'ready' || st.phase === 'walk') { const h = onScreen(); if (h !== st.hover) { st.hover = h; canvas.style.cursor = h ? 'pointer' : 'default'; } }
+    const settle = st.phase === 'ready' ? 1 : st.blend ? 0 : clamp01((ft - END + 1.4) / 1.4);
+    if (st.phase === 'ready') { const h = onScreen(); if (h !== st.hover) { st.hover = h; canvas.style.cursor = h ? 'pointer' : 'default'; } }
     st.lean += ((st.phase === 'ready' && st.hover ? 1 : 0) - st.lean) * .05;
     pos.x += Math.sin(t * .35) * .014 + st.mx * .05 * settle; pos.y += Math.sin(t * .5) * .008 - st.my * .025 * settle;
     if (st.lean > .001) { pos.lerp(SCREEN_C, st.lean * .16); look.lerp(SCREEN_C, st.lean * .3); }
     if (st.phase === 'dive') {
-      const dd = st.diveDur, d = clamp01((NOW - st.diveT) / dd), e = easeIn(d);
+      const dd = st.diveDur, d = clamp01((NOW - st.diveT) / dd), e = Math.pow(d, 2.2);
       pos = st.diveFrom.clone().lerp(V(SCREEN_C.x, SCREEN_C.y, SCREEN_C.z + .16), e); look = st.diveLook.clone().lerp(SCREEN_C, Math.min(1, e * 2));
-      if (NOW - st.diveT > dd - 1120) { term.mode = 'tunnel'; term.tunnel = clamp01((NOW - st.diveT - (dd - 1120)) / 1080); }
+      if (NOW - st.diveT > dd - 860) { term.mode = 'tunnel'; term.tunnel = clamp01((NOW - st.diveT - (dd - 860)) / 820); }
       bloom.strength = .62 + e * 2.2; renderer.toneMappingExposure = 1.05 + e * 1.6; film.uniforms.grain.value = .05 * (1 - e);
       if (d >= 1 && !st.done) { st.done = true; cleanup(); onEnter(st.cmd); return; }
     }
     if (st.view) { pos = st.view.p.clone(); look = st.view.l.clone(); if (st.view.f) { cam.fov = st.view.f; cam.updateProjectionMatrix(); } }
     st.look = look; cam.position.copy(pos); cam.lookAt(look);
+    if (walk > .01) cam.rotateZ(.0045 * walk * Math.sin(Math.PI * ph));
 
     // the reader and the card
     P.panel.draw(ft);
@@ -1045,7 +1042,7 @@ export async function run({ canvas, onEnter, onReady, onLeave, onWalk, onGlide, 
     const pulse = .72 + .28 * Math.sin(t * 7.5);
     P.spill.intensity = 9 * lv[0] * dk; P.hemi.intensity = (.09 + .16 * avg) * (1 - .7 * st.red);
     P.hazeMat.opacity = .005 + .017 * avg + .01 * st.red;
-    if (ft < 6.6) { P.night.position.set(0, CORR - .22, 12.45); P.night.intensity = 2.3 * (.88 + .12 * Math.sin(t * 1.7)); }
+    if (ft < 7.2) { P.night.position.set(0, CORR - .22, 12.45); P.night.intensity = 2.3 * (.88 + .12 * Math.sin(t * 1.7)); }
     else { P.night.position.set(0, 1.8, -.55); P.night.intensity = 7 * st.red * pulse; }
     P.beacon.color.setRGB(.25 + 3.6 * st.red * pulse, .02 + .25 * st.red * pulse, .02 + .15 * st.red * pulse);
     film.uniforms.red.value = .32 * st.red; film.uniforms.time.value = t;
@@ -1067,7 +1064,7 @@ export async function run({ canvas, onEnter, onReady, onLeave, onWalk, onGlide, 
     P.lamp.intensity = st.lamp * 4.6; P.fill.intensity = st.lamp * 1.1; P.bulbMat.color.setRGB(.14 + st.lamp * 1.6, .1 + st.lamp * 1.15, .05 + st.lamp * .45);
     P.dustMat.opacity = .5 * st.lamp;
     // every LED on its own rhythm (time-based, so a frozen frame is always the same frame); red in the dark; a scan line runs ahead of you
-    const D = P.LD, ca = P.leds.instanceColor.array, red = st.red, scan = (st.phase === 'film' || st.phase === 'walk') && !st.skip && ft > 4.9 && st.ps < .8 ? 1 - red : 0, sz = cam.position.z - .4 - ((ft * 4.2) % 7);
+    const D = P.LD, ca = P.leds.instanceColor.array, red = st.red, scan = st.phase === 'film' && !st.skip && ft > 5.6 && cam.position.z > 4.6 ? 1 - red : 0, sz = cam.position.z - .4 - ((ft * 4.2) % 7);
     for (let i = 0; i < D.n; i++) {
       let l = 1; const m = D.m[i];
       if (m === 1) l = (t * D.rate[i] + D.ph[i]) % 1 < D.duty[i] ? 1 : .07;

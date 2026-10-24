@@ -44,20 +44,29 @@ export function install(X) {
   function preview() {
     stopPreview();
     const W = pv.width, H = pv.height, cs = getComputedStyle(document.documentElement);
-    pg.fillStyle = '#070708'; pg.fillRect(0, 0, W, H);
+    pg.fillStyle = '#050607'; pg.fillRect(0, 0, W, H);
     if (tab === 'saver') { if (D.saver !== 'none') pvRun = makeSaver(pv, D.saver, { small: true }); else { pg.fillStyle = '#3e3c38'; pg.font = '12px JBM, monospace'; pg.fillText('(none)', W / 2 - 22, H / 2); } return; }
+    // the os in miniature: the top bar, the dock, the home with its pc on the right
+    const acc = cs.getPropertyValue('--gold').trim() || '#f2b84b', teal = '#62f0c8';
+    pg.fillStyle = '#0a0b0d'; pg.fillRect(0, 0, W, 12); pg.fillRect(0, 12, 16, H - 12);
+    pg.fillStyle = 'rgba(232,226,210,.12)'; pg.fillRect(0, 12, W, 1); pg.fillRect(16, 12, 1, H - 12);
+    pg.fillStyle = '#e8e2d0'; pg.font = '9px PIX, JBM, monospace'; pg.fillText('dao', 3, 9); pg.fillStyle = acc; pg.fillText('_', 21, 9);
+    pg.fillStyle = teal; pg.beginPath(); pg.arc(W - 46, 6, 2, 0, 7); pg.fill();
+    for (let i = 0; i < 7; i++) { pg.fillStyle = i === 0 ? acc : 'rgba(232,226,210,.35)'; pg.fillRect(5, 20 + i * 15, 6, 6); }
     if (tab === 'bg') {
-      if (D.wall === 'pc') { const wall = $('#wall'); try { pg.drawImage(wall, W * .42, H * .12, W * .55, H * .75); } catch {} }
-      pg.fillStyle = '#d8d2c0'; for (let i = 0; i < 4; i++) { pg.fillRect(8, 8 + i * 30, 12, 12); pg.fillRect(5, 23 + i * 30, 18, 3); }
+      if (D.wall === 'pc') { const wall = $('#wall'); try { pg.drawImage(wall, W * .5, H * .16, W * .46, H * .7); } catch {} }
+      pg.fillStyle = '#e8e2d0'; pg.font = '15px PIX, JBM, monospace'; pg.fillText('every launch', 24, 46); pg.fillText('is a ', 24, 64); pg.fillStyle = acc; pg.fillText('dao.', 62, 64);
+      pg.fillStyle = acc; pg.fillRect(24, 76, 46, 10); pg.strokeStyle = 'rgba(232,226,210,.3)'; pg.strokeRect(74.5, 76.5, 34, 9);
+      if (D.crt) { pg.fillStyle = 'rgba(0,0,0,.25)'; for (let y = 0; y < H; y += 3) pg.fillRect(0, y, W, 1); }
       return;
     }
-    // appearance: a tiny window in the chosen colours
-    const acc = cs.getPropertyValue('--gold').trim() || '#f2b84b', t1 = cs.getPropertyValue('--tb1').trim(), t2 = cs.getPropertyValue('--tb2').trim();
-    pg.fillStyle = '#18181c'; pg.fillRect(22, 26, W - 44, H - 50);
-    const gr = pg.createLinearGradient(22, 0, W - 22, 0); gr.addColorStop(0, t1 || '#2d1f06'); gr.addColorStop(1, t2 || '#a8731c'); pg.fillStyle = gr; pg.fillRect(25, 29, W - 50, 14);
-    pg.fillStyle = '#fff2d2'; pg.font = '700 9px JBM, monospace'; pg.fillText('dao', 30, 39);
-    pg.strokeStyle = acc; pg.strokeRect(W - 86, H - 46, 54, 16); pg.fillStyle = acc; pg.fillText('ok', W - 64, H - 35);
-    pg.fillStyle = '#8b867a'; pg.fillText('launch with layers', 32, 62); pg.fillText('of privacy.', 32, 74);
+    // appearance: a window in the chosen colours
+    pg.fillStyle = '#0b0c0f'; pg.fillRect(32, 26, W - 52, H - 44); pg.strokeStyle = 'rgba(232,226,210,.16)'; pg.strokeRect(32.5, 26.5, W - 53, H - 45);
+    const gr = pg.createLinearGradient(32, 0, W - 20, 0); gr.addColorStop(0, teal); gr.addColorStop(1, acc); pg.fillStyle = gr; pg.fillRect(32, 25, W - 52, 2);
+    pg.fillStyle = '#e8e2d0'; pg.font = '700 9px JBM, monospace'; pg.fillText('launch.exe', 40, 40);
+    pg.fillStyle = 'rgba(232,226,210,.12)'; pg.fillRect(32, 46, W - 52, 1);
+    pg.fillStyle = '#8b867a'; pg.font = '9px JBM, monospace'; pg.fillText('every launch is', 40, 62); pg.fillText('a dao.', 40, 74);
+    pg.fillStyle = acc; pg.fillRect(W - 82, H - 40, 52, 16); pg.fillStyle = '#141108'; pg.font = '700 9px JBM, monospace'; pg.fillText('launch', W - 73, H - 29);
     if (D.crt) { pg.fillStyle = 'rgba(0,0,0,.25)'; for (let y = 0; y < H; y += 3) pg.fillRect(0, y, W, 1); }
   }
 
@@ -209,12 +218,12 @@ export function install(X) {
   $('#w-paint [data-pa=undo]').onclick = doUndo;
   $('#w-paint [data-pa=save]').onclick = async () => { const b = await png(512); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'dao-coin.png'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); };
   $('#pUse').onclick = async () => { const b = await png(512); X.useImage(new File([b], 'paint.png', { type: 'image/png' })); };
-  // a starter so the canvas is never a blank wall: a small gold coin with an h on it
+  // a starter so the canvas is never a blank wall: a small gold coin with a d on it
   (() => {
     const g = (x, y, c) => { px[y * N + x] = c; };
     for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const d = Math.hypot(x - 15.5, y - 15.5); if (d < 11.5) g(x, y, d > 10.2 ? '#a8731c' : '#f2b84b'); }
-    const H = ['x....', 'x....', 'x....', 'xxxx.', 'x...x', 'x...x', 'x...x', 'x...x', 'x...x', 'x...x'];
-    H.forEach((r, y) => [...r].forEach((c, x) => { if (c === 'x') { g(13 + x, 11 + y, '#6b4a10'); } }));
+    const D = ['....xx', '....xx', '....xx', '.xxxxx', 'xx..xx', 'xx..xx', 'xx..xx', 'xx..xx', '.xxxxx'];
+    D.forEach((r, y) => [...r].forEach((c, x) => { if (c === 'x') { g(13 + x, 11 + y, '#6b4a10'); } }));
   })();
   draw(); status();
   hooks.paint = { open: () => { draw(); } };
@@ -230,7 +239,7 @@ export function install(X) {
     first = true; over = false; flags = 0; clearInterval(timer); led($('#swTime'), 0); led($('#swLeft'), m); $('#swFace').textContent = ':)';
     grid.style.gridTemplateColumns = `repeat(${w}, var(--sc))`;
     grid.innerHTML = Array.from({ length: w * h }, (_, i) => `<button type="button" class="sc" data-i="${i}" aria-label="cell"></button>`).join('');
-    const win = WM.wins.sweeper; if (win && !MOBILE) { win.style.width = (w * 24 + 52) + 'px'; win.style.height = (h * 24 + 178) + 'px'; }
+    const win = WM.wins.sweeper; if (win && !MOBILE) { win.style.width = (w * 26 + 58) + 'px'; win.style.height = (h * 26 + 222) + 'px'; }
   }
   const nb = i => { const x = i % G.w, y = (i / G.w) | 0, out = []; for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { if (!dx && !dy) continue; const a = x + dx, b = y + dy; if (a >= 0 && b >= 0 && a < G.w && b < G.h) out.push(b * G.w + a); } return out; };
   const count = i => nb(i).reduce((s, j) => s + G.mine[j], 0);
@@ -359,8 +368,11 @@ export function install(X) {
   document.addEventListener('pointerover', e => {
     if (e.pointerType && e.pointerType !== 'mouse') return;
     const el = e.target.closest('[data-tip]'); clearTimeout(tipT); tip.hidden = true; if (!el) return;
-    tipT = setTimeout(() => { tip.textContent = el.dataset.tip; tip.hidden = false; const r = el.getBoundingClientRect(), tw = tip.offsetWidth, th = tip.offsetHeight;
-      let x = Math.min(innerWidth - tw - 6, Math.max(6, r.left + r.width / 2 - tw / 2)), y = r.bottom + 8; if (y + th > innerHeight - 4) y = r.top - th - 8; tip.style.left = x + 'px'; tip.style.top = y + 'px'; }, 520);
+    const side = !!el.closest('#odock');                   // the dock's labels sit to its right
+    tipT = setTimeout(() => { tip.textContent = el.dataset.tip; tip.hidden = false; tip.classList.toggle('side', side); const r = el.getBoundingClientRect(), tw = tip.offsetWidth, th = tip.offsetHeight;
+      let x = Math.min(innerWidth - tw - 6, Math.max(6, r.left + r.width / 2 - tw / 2)), y = r.bottom + 8; if (y + th > innerHeight - 4) y = r.top - th - 8;
+      if (side) { x = r.right + 12; y = Math.max(6, Math.min(innerHeight - th - 6, r.top + r.height / 2 - th / 2)); }
+      tip.style.left = x + 'px'; tip.style.top = y + 'px'; }, side ? 260 : 520);
   });
   document.addEventListener('pointerdown', () => { clearTimeout(tipT); tip.hidden = true; }, true);
 

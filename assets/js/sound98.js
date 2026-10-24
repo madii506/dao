@@ -149,6 +149,13 @@ export function createSound(store) {
     close: t => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'triangle'; o.frequency.setValueAtTime(560, t); o.frequency.exponentialRampToValueAtTime(380, t + .07); g.gain.setValueAtTime(.03, t); g.gain.exponentialRampToValueAtTime(.0005, t + .12); o.connect(g).connect(sfxBus); o.start(t); o.stop(t + .14); },
     ding: t => { [76, 71].forEach((m, i) => { const at = t + i * .14, o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine'; o.frequency.value = hz(m); g.gain.setValueAtTime(.06, at); g.gain.exponentialRampToValueAtTime(.0005, at + .9); o.connect(g).connect(sfxBus); o.start(at); o.stop(at + 1); }); },
     tick: t => { noise(t, .02, 'highpass', 4000, .7, .05, sfxBus); },
+    step: (t, a) => {                                      // a footstep: the heel, then the floor. concrete outside, hollow raised tiles inside
+      const hollow = a === 1, o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine';
+      o.frequency.setValueAtTime(hollow ? 128 : 92, t); o.frequency.exponentialRampToValueAtTime(hollow ? 74 : 52, t + .09);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(hollow ? .085 : .06, t + .006); g.gain.exponentialRampToValueAtTime(.0005, t + (hollow ? .2 : .12));
+      o.connect(g).connect(sfxBus); o.start(t); o.stop(t + .22);
+      noise(t, .05, 'bandpass', hollow ? 820 : 1350, hollow ? 2.6 : 1.1, hollow ? .05 : .04, sfxBus);
+      noise(t + .04 + rnd() * .015, .035, 'highpass', 2800, .7, .012, sfxBus); },
     boom: t => { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.setValueAtTime(160, t); o.frequency.exponentialRampToValueAtTime(40, t + .5); g.gain.setValueAtTime(.25, t); g.gain.exponentialRampToValueAtTime(.001, t + .6); o.connect(g).connect(sfxBus); o.start(t); o.stop(t + .65); },
   };
   let lastSfx = {};
@@ -165,6 +172,7 @@ export function createSound(store) {
     sfx(name, arg) {
       if (!running() || muted || !SFX[name]) return;
       const now = performance.now(); if (lastSfx[name] && now - lastSfx[name] < 40) return; lastSfx[name] = now;
+      if (document.hidden) return;
       try { SFX[name](ctx.currentTime + .005, arg); } catch {}
     },
     setMuted(v) { muted = !!v; try { store.set('dao:mute', muted ? '1' : '0'); } catch {} if (ctx) { const t = ctx.currentTime; master.gain.cancelScheduledValues(t); master.gain.setTargetAtTime(muted ? 0 : vol, t, .08); } emit(); },

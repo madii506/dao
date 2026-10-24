@@ -1,25 +1,28 @@
-// DAO 98: the room, the boot on the CRT, then a dark old-school desktop where every window works.
-import { install } from './apps98.js?v=3';
-import { install as installTools } from './tools98.js?v=2';
-import { createSound } from './sound98.js?v=6';
+// DAO: the room, the boot on the CRT, then the dao os inside the pc: a home you scroll, a dock, a command bar and
+// windows that all work.
+import { install } from './apps98.js?v=4';
+import { install as installTools } from './tools98.js?v=3';
+import { createSound } from './sound98.js?v=7';
 import * as WAL from './wallet98.js?v=2';
+import { mountHome } from './home.js?v=1';
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const MOBILE = matchMedia('(max-width: 760px)').matches || matchMedia('(hover: none)').matches;
+const NARROW = () => matchMedia('(max-width: 760px)').matches;
 const LOWQ = /[?&]q=low\b/.test(location.search);   // a lighter room for slow machines (and for checking frames)
+const MAC = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-const ss = { get(k) { try { return sessionStorage.getItem(k); } catch { return null; } }, set(k, v) { try { sessionStorage.setItem(k, v); } catch {} } };
+const ss = { get(k) { try { return sessionStorage.getItem(k); } catch { return null; } }, set(k, v) { try { sessionStorage.setItem(k, v); } catch {} }, del(k) { try { sessionStorage.removeItem(k); } catch {} } };
 const ls = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
-// sound: browsers only allow it after a click or a key, so the first one anywhere starts the music
-const SOUND = createSound(ls);
 // sound plays on its own wherever the browser allows it; where it doesn't, the very first click or key starts it
+const SOUND = createSound(ls);
 SOUND.unlock();
 const unlockOnce = () => { SOUND.unlock(); if (SOUND.on) ['pointerdown', 'keydown', 'touchend'].forEach(t => removeEventListener(t, unlockOnce, true)); };
 ['pointerdown', 'keydown', 'touchend'].forEach(t => addEventListener(t, unlockOnce, true));
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const short = a => a ? a.slice(0, 4) + '…' + a.slice(-4) : '';
 const ago = t => { const s = Math.max(1, (Date.now() - new Date(t).getTime()) / 1000); return s < 60 ? `${s | 0}s` : s < 3600 ? `${s / 60 | 0}m` : s < 86400 ? `${s / 3600 | 0}h` : `${s / 86400 | 0}d`; };
-const usd = n => n == null ? '—' : n >= 1e6 ? '$' + (n / 1e6).toFixed(2) + 'M' : n >= 1e3 ? '$' + (n / 1e3).toFixed(1) + 'K' : '$' + n;
+const usd = n => n == null ? '—' : n >= 1e6 ? '$' + (n / 1e6).toFixed(2) + 'M' : n >= 1e3 ? '$' + (n / 1e3).toFixed(1) + 'K' : '$' + Math.round(n);
 function toast(t) { const el = $('#toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('show'), 1700); }
 async function copy(t) { try { await navigator.clipboard.writeText(t); toast('copied'); } catch { toast('select it and copy'); } }
 async function api(op, { method = 'GET', body, params } = {}) {
@@ -36,75 +39,73 @@ function unb58(str) { let n = 0n; for (const c of str) { const i = B58.indexOf(c
 const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
 const isAddr = s => { if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(s || '')) return false; try { return unb58(s).length === 32; } catch { return false; } };
 const WIZ_ART = "\n\n      .+++*********##############*#+-===.\n      =###%%%%%%%%%%%%%%%%%%%%%%%###****=\n      =**+===========================++*-\n      =**-                           =**-\n      =**- ...............           +**-\n      =**- . ..............          =**-\n      =**- . ................        =**-\n      =**- . .................       +**-\n      =**- . .................       +**-\n      =**-   ..................      +**-\n      =**-    ..........:......      +**-\n      =**-    ...+--=---==-- ..      +**-\n      =**-    ...**#++*=-+==-.       +**-\n      =**-     ...::::::.::.-.       +**-\n      -**-     ............. ..      +**-\n      -**-      ..............       +**:\n      -**-       ............        +**:\n      -**-        ..........         +**:\n      -**-          ......           +**:\n      -**-                           +**:\n      -**- .  . ...........          +**:\n      -****************++++++++++++++***:\n      -*************************##*+=+**:\n      :++++++++++++++++++++++++++*+==+++:\n     .=+++++++++==++++++++++=======++=====+=\n    -+++++++++++++**#####***++==++++++++++++\n  :+*+++++++++++++*********+++++++++++++++++\n.*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%%%%%%%%%%\n:******##########%%%%%%%%%%%%%%%%%%%%%%%%%%%\n:+++**********************************++++++\n:+****+++++****++++++***+=============+*****\n:++++*: .. -***++++++****============-+***++\n:++#*+++++++***+=++++***+=============+*++++\n:++#***********++++++***+=======------+*++++\n.====+++++++++++*************************+++\n.::::::::::::::::::::::::-----------------==";
+const FILE = { launch: 'launch.exe', coins: 'coins.db', claim: 'claim.exe', privacy: 'privacy.cpl', strip: 'strip.exe', scan: 'scan.exe', cd: 'cdplayer.exe', readme: 'readme.txt', cmd: 'cmd.exe', pc: 'system.cpl', bin: 'recycle bin', paint: 'paint.exe', sweeper: 'sweeper.exe', display: 'display.cpl', coin: 'coin properties', run: 'run' };
 
-// ================================================================ boot: room → dive → splash → desktop
+// a sound switch: little bars that move while it plays
+function soundButton(b) {
+  if (!b) return;
+  const lbl = b.querySelector('.lbl');
+  SOUND.onChange(st => { const on = st.on && !st.muted; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); if (lbl) lbl.textContent = on ? 'sound on' : 'sound off'; });
+  b.addEventListener('click', e => { e.stopPropagation(); SOUND.toggle(); });
+}
+
+// ================================================================ boot: the film in room 00 → the dive → the os, no loading in between
 async function boot() {
   const seen = ss.get('dao:seen');
-  if (seen || RM) return desktop('', true);
+  if (seen || RM) return os('', true);
   const canvas = $('#room');
   let started = false;
-  const go = cmd => { if (go.done) return; go.done = true; ss.set('dao:seen', '1'); flashThen(() => { try { STORY && STORY.stop(); } catch {} STORY = null; desktop(cmd); }); };
+  const go = cmd => { if (go.done) return; go.done = true; ss.set('dao:seen', '1'); enterOS(cmd); };
   $$('#itouch button').forEach(b => b.onclick = () => { if (window.__dao && window.__dao.go) window.__dao.go(b.dataset.go); else go(b.dataset.go); });
+  soundButton($('#isound'));
   try {
     const gl = document.createElement('canvas').getContext('webgl2') || document.createElement('canvas').getContext('webgl');
     if (!gl) throw new Error('no webgl');
-    STORY_MOD = import('./story.js?v=6'); STORY_MOD.catch(() => {});   // fetched while the film plays, ready at the doors
-    const { run } = await import('./intro3d.js?v=13');
+    const { run } = await import('./intro3d.js?v=14');
     const statusP = fetch('/api/status').then(r => r.json()).catch(() => null);
-    const sb = $('#isound');
-    if (sb) { SOUND.onChange(st => { sb.textContent = st.muted ? '♪ sound off' : '♪ sound on'; sb.setAttribute('aria-pressed', String(!st.muted)); });
-      sb.onclick = e => { e.stopPropagation(); SOUND.toggle(); }; }
     window.__dao = await run({ canvas, mobile: MOBILE || LOWQ, onEnter: go, status: statusP, audio: SOUND,
-      onWalk: () => startStory(), onGlide: () => STORY && STORY.glide(),
-      onReady: () => { if (!STORY) { $('#ihint').classList.add('on'); $('#itouch').classList.add('on'); } }, onLeave: () => {} });
+      onReady: () => { $('#ihint').classList.add('on'); $('#itouch').classList.add('on'); } });
     started = true;
     requestAnimationFrame(() => { canvas.classList.add('on'); const l = $('#iload'); if (l) l.remove(); });
   } catch (e) { const l = $('#iload'); if (l) l.remove(); if (!started) fallbackBoot(go); }
 }
-let STORY = null, STORY_MOD = null;
-async function startStory() {                             // past the doors: the page scrolls and the camera walks with it
-  try { const m = await (STORY_MOD || import('./story.js?v=6')); STORY = m.start({ api: window.__dao, sound: SOUND, mobile: MOBILE }); }
-  catch (e) { $('#ihint').classList.add('on'); $('#itouch').classList.add('on'); }
-}
-function flashThen(fn) {
-  const f = $('#iflash'); f.classList.add('go');
-  setTimeout(fn, 320);
-}
 async function fallbackBoot(go) {
-  const pre = $('#ifall'); pre.hidden = false; $('#room').remove(); $$('#intro .lb, #iskip, #icap').forEach(e => e.remove());
+  const pre = $('#ifall'); pre.hidden = false; $('#room').remove(); $$('#intro .lb, #iskip').forEach(e => e.remove());
   const lines = ['DAO BIOS v1.98  (c) nobody', 'cpu: anonymous @ 33 MHz', 'memory test: 640K ok', '', 'detecting wallet connection ...... none', 'detecting signature request ...... none', 'detecting your name .............. not found', 'creator key ...................... born in your browser', '', 'press enter.'];
   for (const l of lines) { pre.textContent += l + '\n'; await sleep(70); }
   $('#itouch').classList.add('on');
   addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === 'Escape') go(''); }, { once: true });
 }
-
-async function desktop(cmd, instant) {
-  const intro = $('#intro'), sp = $('#splash');
-  if (!instant) {                                          // the splash fades in over the flash, then dissolves into the desktop
-    sp.hidden = false; sp.classList.add('in');
-    await sleep(520); intro.remove();
-    await sleep(820); sp.classList.add('out');
-    setTimeout(() => sp.remove(), 700);
-  } else { intro.remove(); sp.remove(); }
-  document.body.classList.remove('booting');
-  const d = $('#desk'); d.hidden = false; d.classList.add('in');
-  SOUND.scene('desk'); if (!instant) setTimeout(() => SOUND.sfx('chime'), 250);
-  initDesk();
-  const app = { launch: 'launch', coins: 'coins', claim: 'claim', layers: 'privacy', docs: 'readme' }[cmd];
-  if (app) WM.open(app);
-  else if (ls.get('dao:nowelcome') !== '1') WM.open('welcome');
+// the dive ends in white; the os is already there underneath it and the white simply fades off
+function enterOS(cmd) {
+  const f = $('#wflash'); if (f) f.classList.add('on');
+  setTimeout(() => {
+    os(cmd);
+    if (f) { requestAnimationFrame(() => requestAnimationFrame(() => f.classList.add('out'))); setTimeout(() => f.remove(), 1100); }
+  }, 40);
 }
+function os(cmd, instant) {
+  const intro = $('#intro'); if (intro) intro.remove();
+  if (instant) { const f = $('#wflash'); if (f) f.remove(); }
+  document.body.classList.remove('booting');
+  const o = $('#os'); o.hidden = false; void o.offsetWidth; o.classList.add('enter');
+  SOUND.scene('desk'); if (!instant) setTimeout(() => SOUND.sfx('chime'), 220);
+  initOS();
+  const app = { launch: 'launch', coins: 'coins', claim: 'claim', layers: 'privacy', docs: 'readme' }[cmd];
+  if (app) setTimeout(() => WM.open(app), instant ? 0 : 420);
+}
+function backToRoom() { ss.del('dao:seen'); location.reload(); }
 
 // ================================================================ window manager
 const WM = {
   z: 10, wins: {}, order: [],
   init() {
-    $$('.w[data-app]').forEach(w => {
+    $$('#wins .w[data-app]').forEach(w => {
       const app = w.dataset.app; this.wins[app] = w;
       if (!w.querySelector(':scope > .tb')) {
         const tb = document.createElement('div'); tb.className = 'tb';
-        tb.innerHTML = `<img src="/assets/img/ico-${w.dataset.icon}-16.png" alt=""><span>${esc(w.dataset.title)}</span><div class="tbb"><button type="button" data-min aria-label="minimize">_</button><button type="button" data-max aria-label="maximize">□</button><button type="button" data-close aria-label="close">×</button></div>`;
-        w.prepend(tb);
+        tb.innerHTML = `<svg class="ico"><use href="#i-${esc(w.dataset.icon)}"/></svg><span></span><div class="tbb"><button type="button" data-min aria-label="minimize"><i class="g-min"></i></button><button type="button" data-max aria-label="maximize"><i class="g-max"></i></button><button type="button" data-close aria-label="close"><i class="g-x"></i></button></div>`;
+        w.prepend(tb); this.title(w);
       }
       const tb = w.querySelector(':scope > .tb');
       tb.addEventListener('pointerdown', e => this.drag(e, w));
@@ -116,23 +117,25 @@ const WM = {
       if (!MOBILE) { const g = document.createElement('div'); g.className = 'grip'; g.setAttribute('aria-hidden', 'true'); w.appendChild(g); g.addEventListener('pointerdown', e => this.resize(e, w)); }
     });
   },
+  title(w) { const [a, ...b] = w.dataset.title.split(' — '); const s = w.querySelector(':scope > .tb > span'); if (s) s.innerHTML = `<b>${esc(a)}</b>${b.length ? `<em> — ${esc(b.join(' — '))}</em>` : ''}`; },
   place(w) {
-    const area = $('#wins').getBoundingClientRect(), n = $$('.w.open').length;
-    const ww = Math.min(w.offsetWidth || parseInt(getComputedStyle(w).getPropertyValue('--ww')) || 600, area.width - 20);
-    const wh = Math.min(w.offsetHeight || parseInt(getComputedStyle(w).getPropertyValue('--wh')) || 420, area.height - 20);
-    let x = Math.max(110, (area.width - ww) / 2 + (n % 5) * 26 - 40), y = Math.max(12, (area.height - wh) / 2 + (n % 5) * 22 - 30);
-    x = Math.min(x, area.width - ww - 8); y = Math.min(y, area.height - wh - 8);
-    w.style.left = Math.max(4, x) + 'px'; w.style.top = Math.max(4, y) + 'px';
+    const area = $('#wins').getBoundingClientRect(), n = Math.max(0, $$('#wins .w.open').length - 1);
+    const ww = Math.min(w.offsetWidth || parseInt(getComputedStyle(w).getPropertyValue('--ww')) || 600, area.width - 24);
+    const wh = Math.min(w.offsetHeight || parseInt(getComputedStyle(w).getPropertyValue('--wh')) || 420, area.height - 24);
+    let x = (area.width - ww) / 2 + ((n % 6) - 1) * 30, y = (area.height - wh) / 2 - 8 + ((n % 6) - 1) * 24;
+    x = Math.max(12, Math.min(x, area.width - ww - 12)); y = Math.max(12, Math.min(y, area.height - wh - 12));
+    w.style.left = x + 'px'; w.style.top = y + 'px';
   },
   rectOf(el) { const r = el.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; },
-  zoom(f, t) {                                             // the old dotted outline that flies between a button and its window
-    if (RM || MOBILE || !f || !t || !f.w || !t.w) return;
-    $('#zoomr').animate([{ left: f.x + 'px', top: f.y + 'px', width: f.w + 'px', height: f.h + 'px', opacity: 1 }, { left: t.x + 'px', top: t.y + 'px', width: t.w + 'px', height: t.h + 'px', opacity: .85 }], { duration: 200, easing: 'cubic-bezier(.3,.7,.4,1)' });
+  zoom(f, t) {                                             // a thin outline flies between a button and its window
+    if (RM || NARROW() || !f || !t || !f.w || !t.w) return;
+    $('#zoomr').animate([{ left: f.x + 'px', top: f.y + 'px', width: f.w + 'px', height: f.h + 'px', opacity: .9 }, { left: t.x + 'px', top: t.y + 'px', width: t.w + 'px', height: t.h + 'px', opacity: 0 }], { duration: 260, easing: 'cubic-bezier(.3,.7,.4,1)' });
   },
   open(app, arg, fromEl) {
+    if (app === 'home') return showHome();
     if (app === 'x') { if (STATUS && STATUS.x) window.open(STATUS.x, '_blank', 'noopener,noreferrer'); return; }
     const w = this.wins[app]; if (!w) return;
-    closeMenus();
+    closeMenus(); closePal();
     const was = w.classList.contains('open');
     if (!was) { w.classList.add('open'); if (!w.dataset.placed) { this.place(w); w.dataset.placed = '1'; } this.task(app, true); }
     w.classList.remove('minimized'); this.focus(app);
@@ -140,34 +143,65 @@ const WM = {
     if (APPS[app] && APPS[app].open && (!was || arg !== undefined)) APPS[app].open(arg);
   },
   close(app) { const w = this.wins[app]; if (!w) return; if (w.classList.contains('open')) SOUND.sfx('close'); w.classList.remove('open', 'active', 'max', 'minimized'); this.task(app, false); APPS[app] && APPS[app].close && APPS[app].close(); this.focusTop(); },
-  min(app) { const w = this.wins[app], b = $(`#tasks [data-task="${app}"]`); if (b) this.zoom(this.rectOf(w), this.rectOf(b)); w.classList.remove('open', 'active'); w.classList.add('minimized'); this.syncTasks(); this.focusTop(); },
+  min(app, quiet) { const w = this.wins[app], b = $(`#tasks [data-task="${app}"]`) || $(`#odock [data-open="${app}"]`); if (!quiet && b) this.zoom(this.rectOf(w), this.rectOf(b)); w.classList.remove('open', 'active'); w.classList.add('minimized'); this.syncTasks(); if (!quiet) this.focusTop(); },
   restore(app) { const w = this.wins[app], b = $(`#tasks [data-task="${app}"]`); w.classList.remove('minimized'); w.classList.add('open'); this.focus(app); if (b) this.zoom(this.rectOf(b), this.rectOf(w)); },
-  max(app) { if (MOBILE) return; const w = this.wins[app], f = this.rectOf(w); w.classList.toggle('max'); this.zoom(f, this.rectOf(w)); },
-  retitle(app, title) { const w = this.wins[app]; if (!w) return; w.dataset.title = title; const s = w.querySelector(':scope > .tb > span'); if (s) s.textContent = title; const b = $(`#tasks [data-task="${app}"] span`); if (b) b.textContent = title.split(' — ')[0]; },
+  max(app) { if (NARROW()) return; const w = this.wins[app], f = this.rectOf(w); w.classList.toggle('max'); this.zoom(f, this.rectOf(w)); },
+  retitle(app, title) { const w = this.wins[app]; if (!w) return; w.dataset.title = title; this.title(w); const b = $(`#tasks [data-task="${app}"] span`); if (b) b.textContent = FILE[app] || title.split(' — ')[0]; },
   isActive(app) { const w = this.wins[app]; return !!(w && w.classList.contains('open') && w.classList.contains('active')); },
   focus(app) {
     const w = this.wins[app]; if (!w || !w.classList.contains('open')) return;
-    $$('.w.active').forEach(x => x !== w && x.classList.remove('active'));
+    $$('#wins .w.active').forEach(x => x !== w && x.classList.remove('active'));
     w.classList.add('active'); w.style.zIndex = ++this.z; this.order = this.order.filter(a => a !== app); this.order.push(app); this.syncTasks();
   },
+  blur() { $$('#wins .w.active').forEach(x => x.classList.remove('active')); this.syncTasks(); },
   focusTop() { const open = this.order.filter(a => this.wins[a].classList.contains('open')); if (open.length) this.focus(open[open.length - 1]); else this.syncTasks(); },
   task(app, on) {
     const t = $('#tasks'); let b = t.querySelector(`[data-task="${app}"]`);
     if (on && !b) {
       const w = this.wins[app]; b = document.createElement('button'); b.type = 'button'; b.dataset.task = app;
-      b.innerHTML = `<img src="/assets/img/ico-${w.dataset.icon}-16.png" alt=""><span>${esc(w.dataset.title.split(' — ')[0])}</span>`;
+      b.innerHTML = `<svg class="ico"><use href="#i-${esc(w.dataset.icon)}"/></svg><span>${esc(FILE[app] || w.dataset.title.split(' — ')[0])}</span>`;
       b.onclick = () => { const w2 = this.wins[app]; if (w2.classList.contains('minimized')) this.restore(app); else if (w2.classList.contains('active')) this.min(app); else this.focus(app); };
       t.appendChild(b);
     }
     if (!on && b) b.remove();
     this.syncTasks();
   },
-  syncTasks() { $$('#tasks button').forEach(b => b.classList.toggle('on', this.wins[b.dataset.task].classList.contains('active'))); },
+  syncTasks() {
+    const act = Object.keys(this.wins).find(a => this.isActive(a)) || null;
+    $$('#tasks button').forEach(b => { const w = this.wins[b.dataset.task]; b.classList.toggle('on', w.classList.contains('active')); b.classList.toggle('mini', w.classList.contains('minimized')); });
+    const live = a => this.wins[a] && (this.wins[a].classList.contains('open') || this.wins[a].classList.contains('minimized'));
+    $$('#odock [data-open], #otabs [data-open]').forEach(b => { const a = b.dataset.open; b.classList.toggle('on', a !== 'home' && live(a)); b.classList.toggle('act', a === (act || 'home')); });
+    const where = $('#oWhere'); if (where) where.textContent = act ? (FILE[act] || act) : 'home';
+    document.body.classList.toggle('haswin', !!act);
+    HOME && HOME.pause(!!act && NARROW()); WALL.covered = !!act && NARROW(); if (WALL.ctl) WALL.ctl.pause(WALL.paused || WALL.covered);
+  },
+  // drag by the title bar. pushed against the left or right edge it snaps to that half of the screen; against the top it fills it
   drag(e, w) {
-    if (e.target.closest('button') || w.classList.contains('max') || MOBILE) return;
-    e.preventDefault(); const r = w.getBoundingClientRect(), area = $('#wins').getBoundingClientRect(), dx = e.clientX - r.left, dy = e.clientY - r.top;
-    const mv = ev => { w.style.left = Math.min(area.width - 60, Math.max(-r.width + 80, ev.clientX - area.left - dx)) + 'px'; w.style.top = Math.min(area.height - 30, Math.max(0, ev.clientY - area.top - dy)) + 'px'; };
-    const up = () => { removeEventListener('pointermove', mv); removeEventListener('pointerup', up); };
+    if (e.target.closest('button') || NARROW()) return;
+    e.preventDefault(); const area = $('#wins').getBoundingClientRect(), x0 = e.clientX, y0 = e.clientY;
+    let r = w.getBoundingClientRect(), dx = e.clientX - r.left, dy = e.clientY - r.top, moved = false, zone = null;
+    const ghost = $('#snapg');
+    const mv = ev => {
+      if (!moved) {
+        if (Math.hypot(ev.clientX - x0, ev.clientY - y0) < 4) return; moved = true; w.classList.add('moving');
+        if (w.classList.contains('max') || w.dataset.snap) {         // pulling a snapped window off the edge gives it back its size
+          const pw = parseFloat(w.dataset.pw) || w.offsetWidth * .6, ph = parseFloat(w.dataset.ph) || w.offsetHeight * .7;
+          w.classList.remove('max'); delete w.dataset.snap; w.style.width = pw + 'px'; w.style.height = ph + 'px'; dx = Math.min(dx, pw * .5); dy = Math.min(dy, 18);
+        }
+      }
+      w.style.left = Math.min(area.width - 80, Math.max(-w.offsetWidth + 100, ev.clientX - area.left - dx)) + 'px'; w.style.top = Math.min(area.height - 36, Math.max(0, ev.clientY - area.top - dy)) + 'px';
+      zone = ev.clientX < area.left + 18 ? 'l' : ev.clientX > area.right - 18 ? 'r' : ev.clientY < area.top + 8 ? 't' : null;
+      if (zone) { const half = area.width / 2; Object.assign(ghost.style, { left: (zone === 'r' ? area.left + half : area.left) + 8 + 'px', top: area.top + 8 + 'px', width: (zone === 't' ? area.width : half) - 16 + 'px', height: area.height - 16 + 'px' }); ghost.classList.add('on'); }
+      else ghost.classList.remove('on');
+    };
+    const up = () => {
+      removeEventListener('pointermove', mv); removeEventListener('pointerup', up); w.classList.remove('moving'); ghost.classList.remove('on');
+      if (!moved || !zone) return;
+      w.dataset.pw = r.width; w.dataset.ph = r.height;
+      if (zone === 't') { w.classList.add('max'); return; }
+      const half = Math.round(area.width / 2); w.dataset.snap = zone;
+      Object.assign(w.style, { left: (zone === 'r' ? half : 0) + 'px', top: '0px', width: half + 'px', height: area.height + 'px' }); SOUND.sfx('click');
+    };
     addEventListener('pointermove', mv); addEventListener('pointerup', up);
   },
   resize(e, w) {                                           // drag the corner grip
@@ -182,28 +216,32 @@ const WM = {
 };
 function dialog(title, html, buttons = [['ok', true]], icon = 'warn') {
   return new Promise(res => {
-    const d = $('#dlg'); $('#dlgT').textContent = title; $('#dlgB').innerHTML = html; $('#dlgI').src = `/assets/img/ico-${icon}.png`;
+    const d = $('#dlg'); $('#dlgT').textContent = title; $('#dlgB').innerHTML = html; $('#dlgI use').setAttribute('href', '#i-' + icon);
     const a = $('#dlgA'); a.innerHTML = '';
     buttons.forEach(([label, def], i) => { const b = document.createElement('button'); b.className = 'bt' + (def ? ' def' : ''); b.type = 'button'; b.textContent = label; b.onclick = () => { d.classList.remove('open'); d.hidden = true; res(i); }; a.appendChild(b); });
     d.hidden = false; d.classList.add('open', 'active'); SOUND.sfx('ding'); d.querySelector('[data-x]').onclick = () => { d.classList.remove('open'); d.hidden = true; res(-1); };
     setTimeout(() => a.querySelector('.def') && a.querySelector('.def').focus(), 30);
   });
 }
-
-// ================================================================ desktop chrome: icons, selection, menus, tray
-let HOOKS = {};
-function closeMenus() {
-  $('#startmenu').hidden = true; $('#volPop').hidden = true; $$('.menu.subm').forEach(m => m.hidden = true); $$('#startmenu .sub').forEach(b => b.classList.remove('open'));
-  $('#startBtn').setAttribute('aria-expanded', 'false'); $('#ctx').hidden = true; HOOKS.closeClock && HOOKS.closeClock();
+// home: every window steps aside; a second press goes back to the top
+function showHome() {
+  closeMenus(); closePal();
+  const open = Object.keys(WM.wins).filter(a => WM.wins[a].classList.contains('open'));
+  if (!open.length) { HOME && HOME.top(); WM.syncTasks(); return; }
+  open.forEach(a => WM.min(a, true)); WM.syncTasks();
 }
-// the wallpaper: the ASCII PC only loads when it is wanted, and pauses under the screensaver
-const WALL = { want: 'pc', ctl: null, paused: false, loading: false };
+
+// ================================================================ the os chrome: top bar, dock, tabs, command bar, search
+let HOOKS = {}, HOME = null;
+function closeMenus() { HOOKS.closeClock && HOOKS.closeClock(); }
+// the home screen's pc: the ascii PC only runs when it is wanted, and pauses under the screensaver
+const WALL = { want: 'pc', ctl: null, paused: false, covered: false, loading: false };
 function setWall(v) {
   WALL.want = v; $('#wall').classList.toggle('off', v !== 'pc');
   if (WALL.ctl) WALL.ctl.show(v === 'pc');
-  else if (v === 'pc' && !RM && !WALL.loading && !$('#desk').hidden) { WALL.loading = true; import('./ascii3d.js?v=3').then(m => { WALL.ctl = m.mountAscii($('#wall')); WALL.ctl.show(WALL.want === 'pc'); WALL.ctl.pause(WALL.paused); }).catch(() => {}); }
+  else if (v === 'pc' && !RM && !WALL.loading && !$('#os').hidden) { WALL.loading = true; import('./ascii3d.js?v=3').then(m => { WALL.ctl = m.mountAscii($('#wall')); WALL.ctl.show(WALL.want === 'pc'); WALL.ctl.pause(WALL.paused || WALL.covered); }).catch(() => {}); }
 }
-function pauseWall(p) { WALL.paused = p; if (WALL.ctl) WALL.ctl.pause(p); }
+function pauseWall(p) { WALL.paused = p; if (WALL.ctl) WALL.ctl.pause(p || WALL.covered); }
 let pickImage = null;
 async function useImage(file) {
   WM.open('launch');
@@ -212,110 +250,108 @@ async function useImage(file) {
   toast(W.step === 0 ? 'image set · fill in the coin, then next' : 'image set in launch.exe');
 }
 function openClaimWatch(addr) { WM.open('claim'); $('#kWatch').value = addr; setClaimKey(null, addr); }
-function iconDrag(icons) {                                 // icons can be dragged anywhere on a grid; arrange icons puts them back
-  const box = $('#icons'), CW = 104, CH = 96, KEY = 'dao:icons';
-  let pos = {}; try { pos = JSON.parse(ls.get(KEY) || '{}'); } catch {}
-  const dims = () => ({ cols: Math.max(1, Math.floor((innerWidth - 20) / CW)), rows: Math.max(1, Math.floor((innerHeight - 64) / CH)) });
-  function layout() {
-    if (!Object.keys(pos).length) { box.classList.remove('free'); icons.forEach(ic => { ic.style.left = ic.style.top = ''; }); return; }
-    box.classList.add('free'); const taken = new Set(), { cols, rows } = dims(), rest = [];
-    const put = (ic, c, r) => { taken.add(c + ':' + r); ic.style.left = c * CW + 'px'; ic.style.top = r * CH + 'px'; };
-    icons.forEach(ic => { if (ic.hidden) return; const p = pos[ic.dataset.open]; if (p && p[0] < cols && p[1] < rows && !taken.has(p[0] + ':' + p[1])) put(ic, p[0], p[1]); else rest.push(ic); });
-    let c = 0, r = 0; for (const ic of rest) { while (taken.has(c + ':' + r)) { if (++r >= rows) { r = 0; c++; } } put(ic, c, r); }
-  }
-  function freeze() { if (box.classList.contains('free')) return; const b = box.getBoundingClientRect(); icons.forEach(ic => { if (ic.hidden) return; const r = ic.getBoundingClientRect(); pos[ic.dataset.open] = [Math.round((r.left - b.left) / CW), Math.round((r.top - b.top) / CH)]; }); layout(); }
-  icons.forEach(ic => ic.addEventListener('dragstart', e => e.preventDefault()));
-  icons.forEach(ic => ic.addEventListener('pointerdown', e => {
-    if (e.button !== 0 || e.pointerType !== 'mouse') return;
-    const x0 = e.clientX, y0 = e.clientY; let on = false, ox = 0, oy = 0;
-    const mv = ev => {
-      if (!on) { if (Math.hypot(ev.clientX - x0, ev.clientY - y0) < 6) return; on = true; freeze(); const r = ic.getBoundingClientRect(); ox = x0 - r.left; oy = y0 - r.top; ic.classList.add('dragging'); }
-      const b = box.getBoundingClientRect(); ic.style.left = (ev.clientX - b.left - ox) + 'px'; ic.style.top = (ev.clientY - b.top - oy) + 'px';
-    };
-    const up = () => {
-      removeEventListener('pointermove', mv); removeEventListener('pointerup', up);
-      if (!on) return; ic.classList.remove('dragging'); ic.dataset.dragged = '1'; setTimeout(() => delete ic.dataset.dragged, 60);
-      const { cols, rows } = dims(); let c = Math.max(0, Math.min(cols - 1, Math.round(parseFloat(ic.style.left) / CW))), r = Math.max(0, Math.min(rows - 1, Math.round(parseFloat(ic.style.top) / CH)));
-      const other = Object.entries(pos).find(([k, p]) => k !== ic.dataset.open && p[0] === c && p[1] === r);
-      if (other) pos[other[0]] = pos[ic.dataset.open];             // swap places with whoever sat there
-      pos[ic.dataset.open] = [c, r]; ls.set(KEY, JSON.stringify(pos)); layout();
-    };
-    addEventListener('pointermove', mv); addEventListener('pointerup', up);
-  }));
-  addEventListener('resize', layout);
-  layout();
-  return { reset() { pos = {}; ls.set(KEY, '{}'); layout(); } };
+
+// search: apps, the parts of home and a few commands, all from one box (ctrl k, or the apps tab on a phone)
+const PAL = { items: [], list: [], i: 0 };
+function palItems() {
+  const app = (id, name, sub) => ({ k: 'app', id, name, sub, icon: WM.wins[id] ? WM.wins[id].dataset.icon : 'pc', run: () => WM.open(id) });
+  const sec = (id, name) => ({ k: 'page', name, sub: 'home', icon: 'home', run: () => { showHome(); setTimeout(() => HOME && HOME.to(id), 60); } });
+  const act = (name, sub, icon, run) => ({ k: 'do', name, sub, icon, run });
+  return [
+    app('launch', 'launch.exe', 'launch a coin, free'), app('coins', 'coins.db', 'every coin launched on dao'), app('claim', 'claim.exe', 'claim creator fees, no gas'),
+    app('privacy', 'privacy.cpl', 'the six layers'), app('strip', 'strip.exe', 'see what a photo carries'), app('scan', 'scan.exe', 'what this page talks to'),
+    app('paint', 'paint.exe', 'draw a coin'), app('sweeper', 'tracker sweeper', 'a game'), app('cd', 'cd player', 'the soundtrack'), app('cmd', 'cmd.exe', 'command prompt'),
+    app('readme', 'readme.txt', 'the manual'), app('display', 'display.cpl', 'colours, crt, screen saver'), app('pc', 'system.cpl', 'status of this pc'), app('bin', 'recycle bin', 'emptied, on purpose'),
+    sec('h-top', 'top of home'), sec('h-how', 'how a launch works'), sec('h-layers', 'the six layers'), sec('h-live', 'live from the chain'), sec('h-tech', 'under the floor'),
+    sec('h-claim', 'claim without gas'), sec('h-apps', 'every app in this os'), sec('h-public', 'what stays public'), sec('h-faq', 'questions'),
+    act('sound on / off', 'toggle', 'cd', () => SOUND.toggle()), act('screen saver', 'start it now', 'display', () => HOOKS.saver && HOOKS.saver.start()),
+    ...['amber', 'teal', 'rose', 'ice', 'mono'].map(c => act('colour: ' + c, 'accent', 'display', () => HOOKS.setAccent && HOOKS.setAccent(c))),
+    act('back to room 00', 'replay the way in', 'door', backToRoom),
+  ];
 }
-function initDesk() {
+function palRender() {
+  const q = $('#palIn').value.trim().toLowerCase();
+  PAL.list = PAL.items.filter(it => !q || (it.name + ' ' + it.sub).toLowerCase().includes(q));
+  PAL.i = Math.min(PAL.i, Math.max(0, PAL.list.length - 1));
+  const apps = PAL.list.filter(it => it.k === 'app');
+  $('#palApps').innerHTML = !q ? apps.map(it => `<button type="button" data-p="${PAL.list.indexOf(it)}"><svg class="ico"><use href="#i-${it.icon}"/></svg><span>${esc(it.name)}</span></button>`).join('') : '';
+  $('#palApps').hidden = !!q;
+  const rows = q ? PAL.list : PAL.list.filter(it => it.k !== 'app');
+  if (rows.length && !rows.includes(PAL.list[PAL.i])) PAL.i = PAL.list.indexOf(rows[0]);
+  $('#palList').innerHTML = rows.length ? rows.map(it => { const i = PAL.list.indexOf(it); return `<button type="button" role="option" data-p="${i}" class="${i === PAL.i ? 'on' : ''}"><svg class="ico"><use href="#i-${it.icon}"/></svg><b>${esc(it.name)}</b><span>${esc(it.sub)}</span><em>${it.k === 'app' ? 'open' : it.k === 'page' ? 'go' : 'run'}</em></button>`; }).join('') : '<div class="palnone">nothing by that name. try launch, coins or claim.</div>';
+  $$('#pal [data-p]').forEach(b => b.onclick = () => palRun(+b.dataset.p));
+}
+function palRun(i) { const it = PAL.list[i]; if (!it) return; closePal(); it.run(); }
+function openPal() {
+  const p = $('#pal'); if (!p.hidden) return closePal();
+  closeMenus(); PAL.items = palItems(); PAL.i = 0; $('#palIn').value = ''; p.hidden = false; palRender(); SOUND.sfx('open');
+  requestAnimationFrame(() => { p.classList.add('on'); if (!MOBILE) $('#palIn').focus(); });
+}
+function closePal() { const p = $('#pal'); if (!p || p.hidden) return; p.classList.remove('on'); p.hidden = true; }
+
+// the command bar: the same commands as cmd.exe, typed straight into the os. its answers show above it for a moment
+function commandBar() {
+  const inp = $('#oCmdIn'), out = $('#oOut'); let hideT = 0;
+  const print = (h, cls) => { out.hidden = false; const d = document.createElement('div'); if (cls) d.className = cls; d.innerHTML = h; out.appendChild(d); while (out.children.length > 9) out.firstChild.remove(); clearTimeout(hideT); hideT = setTimeout(() => { out.hidden = true; }, 9000); };
+  const CMD = commands(print, () => { out.innerHTML = ''; out.hidden = true; }, () => { out.hidden = true; inp.blur(); });
+  const hist = []; let hi = 0;
+  inp.addEventListener('keydown', e => {
+    if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Enter') SOUND.sfx('key');
+    if (e.key === 'Escape') { out.hidden = true; inp.blur(); return; }
+    if (e.key === 'ArrowUp' && hist.length) { e.preventDefault(); hi = Math.max(0, hi - 1); inp.value = hist[hi] || ''; return; }
+    if (e.key === 'ArrowDown' && hist.length) { e.preventDefault(); hi = Math.min(hist.length, hi + 1); inp.value = hist[hi] || ''; return; }
+    if (e.key !== 'Enter') return; const raw = inp.value; inp.value = ''; if (!raw.trim()) return;
+    hist.push(raw); hi = hist.length;
+    print(`<span class="ok">C:\\DAO&gt;</span> ${esc(raw)}`); CMD.run(raw);
+  });
+  inp.addEventListener('blur', () => { clearTimeout(hideT); hideT = setTimeout(() => { out.hidden = true; }, 2500); });
+}
+
+function initOS() {
   WM.init();
-  const icons = $$('.ic');
-  icons.forEach(ic => {
-    ic.addEventListener('click', e => { if (ic.dataset.dragged) return; icons.forEach(x => x.classList.toggle('sel', x === ic)); if (MOBILE) WM.open(ic.dataset.open, undefined, ic); });
-    ic.addEventListener('dblclick', () => { if (!ic.dataset.dragged) WM.open(ic.dataset.open, undefined, ic); });
-    ic.addEventListener('keydown', e => { if (e.key === 'Enter') WM.open(ic.dataset.open, undefined, ic); });
+  HOME = mountHome({ root: $('#ohome'), mobile: MOBILE });
+  // anything marked data-open opens that app: the dock, the tabs, the home page, buttons inside windows
+  document.addEventListener('click', e => { const b = e.target.closest('[data-open]'); if (!b) return; WM.open(b.dataset.open, undefined, b.closest('#odock, #otabs, .tiles, .ctas, #tasks') ? b : null); });
+  $('#ohome').addEventListener('pointerdown', () => { closeMenus(); if (!NARROW()) WM.blur(); });
+  $('#tabApps').onclick = e => { e.stopPropagation(); openPal(); };
+  $('#oFind').onclick = e => { e.stopPropagation(); openPal(); };
+  $('#oKey').textContent = MAC ? '⌘K' : 'ctrl K';
+  $('#pal').addEventListener('pointerdown', e => { if (e.target.id === 'pal') closePal(); });
+  $('#palX').onclick = () => closePal(); $('#palX').textContent = MOBILE ? 'close' : 'esc';
+  $('#palIn').addEventListener('input', () => { PAL.i = 0; palRender(); });
+  $('#palIn').addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); const rows = $$('#palList [data-p]').map(b => +b.dataset.p); if (!rows.length) return; const k = rows.indexOf(PAL.i); PAL.i = rows[(k + (e.key === 'ArrowDown' ? 1 : -1) + rows.length) % rows.length]; palRender(); const on = $('#palList .on'); on && on.scrollIntoView({ block: 'nearest' }); }
+    else if (e.key === 'Enter') { e.preventDefault(); const rows = $$('#palList [data-p]').map(b => +b.dataset.p); palRun(rows.includes(PAL.i) ? PAL.i : rows[0]); }
+    else if (e.key === 'Escape') { e.preventDefault(); closePal(); }
   });
-  document.addEventListener('click', e => { const b = e.target.closest('[data-open]'); if (b && !b.classList.contains('ic')) WM.open(b.dataset.open, undefined, b.closest('.ql, .wbtns') ? b : null); });
-  const drag = MOBILE ? null : iconDrag(icons);
-  // drag-select on the bare desktop
-  const desk = $('#desk'), sel = $('#sel');
-  desk.addEventListener('pointerdown', e => {
-    if (e.button !== 0 || e.target.closest('.w, .ic, .taskbar, .menu, .balloon')) return;
-    closeMenus(); icons.forEach(x => x.classList.remove('sel')); if (MOBILE) return;
-    const x0 = e.clientX, y0 = e.clientY; sel.style.display = 'block';
-    const mv = ev => { const x = Math.min(x0, ev.clientX), y = Math.min(y0, ev.clientY), w = Math.abs(ev.clientX - x0), h = Math.abs(ev.clientY - y0);
-      Object.assign(sel.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px' });
-      icons.forEach(ic => { const r = ic.getBoundingClientRect(); ic.classList.toggle('sel', r.right > x && r.left < x + w && r.bottom > y && r.top < y + h); }); };
-    const up = () => { sel.style.display = 'none'; sel.style.width = sel.style.height = '0'; removeEventListener('pointermove', mv); removeEventListener('pointerup', up); };
-    addEventListener('pointermove', mv); addEventListener('pointerup', up);
+  addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openPal(); return; }
+    if (e.key === 'Escape') { closeMenus(); closePal(); return; }
+    const typing = e.target.closest && e.target.closest('input, textarea, select, [contenteditable]');
+    if (!typing && e.key === '/' && !e.ctrlKey && !e.metaKey) { e.preventDefault(); if (NARROW()) openPal(); else $('#oCmdIn').focus(); }
   });
-  desk.addEventListener('contextmenu', e => {
-    if (e.target.closest('.w, .taskbar')) return; e.preventDefault(); closeMenus();
-    const m = $('#ctx'); m.hidden = false; m.style.left = Math.min(e.clientX, innerWidth - 190) + 'px'; m.style.top = Math.min(e.clientY, innerHeight - 220) + 'px';
-  });
-  $$('[data-act]').forEach(b => b.addEventListener('click', () => {
-    closeMenus(); const a = b.dataset.act;
-    if (a === 'refresh') { status(); coins(); toast('refreshed'); }
-    if (a === 'arrange') { const g = $('#icons'); [...g.children].sort((x, y) => x.textContent.localeCompare(y.textContent)).forEach(n => g.appendChild(n)); drag && drag.reset(); }
-    if (a === 'saver') HOOKS.saver && HOOKS.saver.start();
-  }));
-  $('#startBtn').onclick = e => { e.stopPropagation(); const m = $('#startmenu'); const open = m.hidden; closeMenus(); m.hidden = !open; $('#startBtn').setAttribute('aria-expanded', String(open)); };
-  // start menu flyouts
-  const openSub = btn => {
-    $$('.menu.subm').forEach(m => m.hidden = m.id !== 'sub-' + btn.dataset.sub); $$('#startmenu .sub').forEach(b => b.classList.toggle('open', b === btn));
-    const m = $('#sub-' + btn.dataset.sub), r = btn.getBoundingClientRect(); m.hidden = false;
-    let x = r.right - 3; if (x + m.offsetWidth > innerWidth - 4) x = Math.max(4, innerWidth - m.offsetWidth - 4);
-    m.style.left = x + 'px'; m.style.top = Math.max(4, Math.min(innerHeight - m.offsetHeight - 52, r.top - 3)) + 'px';
-  };
-  $$('#startmenu .sub').forEach(b => { b.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') openSub(b); }); b.addEventListener('click', e => { e.stopPropagation(); openSub(b); }); });
-  $$('#startmenu .items > button:not(.sub)').forEach(b => b.addEventListener('pointerenter', () => { $$('.menu.subm').forEach(m => m.hidden = true); $$('#startmenu .sub').forEach(x => x.classList.remove('open')); }));
-  document.addEventListener('pointerdown', e => { if (!e.target.closest('.menu, #startBtn, #clock, #traySnd')) closeMenus(); });
-  addEventListener('keydown', e => { if (e.key === 'Escape') closeMenus(); });
-  $('#shutBtn').onclick = async () => { closeMenus(); const i = await dialog('shut down dao', 'what do you want the computer to do?', [['shut down', true], ['restart', false], ['cancel', false]], 'pc');
-    if (i === 0) { $('#shutdown').hidden = false; $('#shutdown').onclick = () => { try { sessionStorage.removeItem('dao:seen'); } catch {} location.reload(); }; }
-    if (i === 1) { try { sessionStorage.removeItem('dao:seen'); } catch {} location.reload(); } };
-  const vp = $('#volPop'), vr = $('#volRange'), vm = $('#volMute'), ts = $('#traySnd');
-  SOUND.onChange(st => { vr.value = Math.round(st.vol * 100); vm.checked = st.muted; ts.textContent = st.muted ? '♪̸' : '♪'; ts.classList.toggle('off', st.muted); });
-  ts.onclick = e => { e.stopPropagation(); const open = vp.hidden; closeMenus(); vp.hidden = !open; SOUND.unlock(); };
-  ts.addEventListener('dblclick', e => { e.stopPropagation(); SOUND.toggle(); });
-  vr.oninput = () => { SOUND.setVolume(vr.value / 100); if (SOUND.muted && vr.value > 0) SOUND.setMuted(false); };
-  vm.onchange = () => SOUND.setMuted(vm.checked);
+  document.addEventListener('pointerdown', e => { if (!e.target.closest('.menu, #clock')) closeMenus(); });
+  soundButton($('#traySnd'));
   const tick = () => { const d = new Date(); $('#clock').textContent = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); };
   tick(); setInterval(tick, 15000);
+  const leave = async () => { closeMenus(); const i = await dialog('leave the os', 'go back to room 00, or shut the pc down?', [['back to room 00', true], ['shut down', false], ['cancel', false]], 'power');
+    if (i === 0) backToRoom();
+    if (i === 1) { SOUND.sfx('brown'); pauseWall(true); $('#shutdown').hidden = false; $('#shutdown').onclick = backToRoom; } };
+  $('#shutBtn').onclick = leave; $('#hRoom').onclick = backToRoom;
   $('#balloon').onclick = e => { if (!e.target.closest('.bx')) WM.open('coins'); $('#balloon').hidden = true; };
-  $('#welcomeShow').checked = ls.get('dao:nowelcome') !== '1';
-  $('#welcomeShow').onchange = e => ls.set('dao:nowelcome', e.target.checked ? '0' : '1');
-  wizard(); claimUi(); privacy(); readme(); cmd(); bin();
+  wizard(); claimUi(); privacy(); readme(); cmd(); bin(); commandBar();
   $('#wizArt').textContent = WIZ_ART;
   $('#coinsRefresh').onclick = () => coins();
   HOOKS = install({ $, $$, esc, WM, dialog, toast, ls, MOBILE, copy, ago, usd, sfx: (n, a) => SOUND.sfx(n, a), getStatus: () => STATUS, getCoins: () => COINS, useImage, openClaimWatch, setWall, pauseWall, closeMenus });
   Object.assign(APPS, { display: HOOKS.display, paint: HOOKS.paint, sweeper: HOOKS.sweeper, coin: HOOKS.coin, run: HOOKS.run });
   const TOOLS = installTools({ $, esc, WM, toast, useImage, sound: SOUND, sfx: (n, a) => SOUND.sfx(n, a) });
   Object.assign(APPS, { strip: TOOLS.strip, scan: TOOLS.scan, cd: TOOLS.cd });
-  // drop a photo anywhere on the desktop: strip.exe opens with it
-  const dz = $('#desk');
+  // drop a photo anywhere in the os: strip.exe opens with it
+  const dz = $('#os');
   dz.addEventListener('dragover', e => { if (!e.target.closest('.w') && [...(e.dataTransfer.items || [])].some(i => i.kind === 'file')) { e.preventDefault(); dz.classList.add('dropping'); } });
   dz.addEventListener('dragleave', e => { if (e.target === dz || !dz.contains(e.relatedTarget)) dz.classList.remove('dropping'); });
   dz.addEventListener('drop', e => { dz.classList.remove('dropping'); if (e.target.closest('.w')) return; const f = e.dataTransfer.files[0]; if (!f || !/^image\//.test(f.type)) return; e.preventDefault(); WM.open('strip', f); });
+  WM.syncTasks();
   status(); coins(true);
   setInterval(status, 20000); setInterval(() => coins(false), 25000);
   setWall(WALL.want);
@@ -327,22 +363,23 @@ const WHY = { treasury: 'free launches are paused right now. you can still launc
 async function status() {
   try { STATUS = await api('status'); } catch { STATUS = null; }
   const s = STATUS;
+  $('#oStat').innerHTML = s ? `<i class="dot ${s.ready ? 'live' : 'off'}"></i><span>${s.ready ? 'launches open' : 'launches paused'}</span><em>${esc(s.network || '')}</em>` : '<i class="dot"></i><span>offline</span>';
+  HOME && HOME.status(s);
   if (!s) return;
-  const left = Math.max(0, Math.min(s.cap - s.today, s.launchesLeft == null ? s.cap : s.launchesLeft));
   $('#freeLeft').innerHTML = s.ready ? '<span class="teal">●</span> launches open' : `<span class="gold">●</span> ${esc(WHY[s.why] || 'launches are paused.')}`;
-  $('#welcomeState').innerHTML = s.ready ? '<span class="dot live"></span><span>launches open</span>' : '<span class="dot off"></span><span>launches paused for now</span>';
   $('#sysLive').innerHTML = `network: <b>${esc(s.network)}</b><br>launches: <b>${s.ready ? 'open' : 'paused'}</b>`;
   $('#sysTre').textContent = `${s.network} · ${s.ready ? 'launches open' : 'launches paused'}`;
-  if (s.x) $('#icX').hidden = false;
+  if (s.x) $('#dockX').hidden = false;
   syncLaunch();
 }
 async function coins(first) {
-  let j; try { j = await api('coins', { params: { limit: 50 } }); } catch (e) { $('#coinsBody').innerHTML = `<div class="empty">${esc(e.message)}</div>`; return; }
+  let j; try { j = await api('coins', { params: { limit: 50 } }); } catch (e) { $('#coinsBody').innerHTML = `<div class="empty">${esc(e.message)}</div>`; HOME && HOME.coins(null, true); return; }
   const list = j.coins || [];
+  HOME && HOME.coins(list);
   const fresh = SEEN ? list.filter(c => !SEEN.has(c.id) && c.status === 'launched') : [];
   SEEN = new Set(list.map(c => c.id)); COINS = list;
   if (fresh.length && !first) balloon(`new coin · $${fresh[0].symbol}`, `${fresh[0].name} just launched on dao. click to see it.`);
-  $('#coinsMeta').textContent = `${list.length} object(s)${list.length ? ' · double-click a coin for its properties' : ''}`;
+  $('#coinsMeta').textContent = `${list.length} coin${list.length === 1 ? '' : 's'}${list.length ? (MOBILE ? ' · tap a coin for its properties' : ' · double-click a coin for its properties') : ''}`;
   $('#coinsSol').textContent = j.solUsd ? `SOL $${j.solUsd}` : '';
   if (!list.length) { $('#coinsBody').innerHTML = `<div class="empty"><pre>  .--------.\n  | empty_ |\n  '--------'</pre>no coins yet. the first one launched on dao shows up here.<br><br><button class="bt def" type="button" data-open="launch">launch the first</button></div>`; return; }
   const bar = p => { if (p == null) return '<span class="dim">—</span>'; const n = Math.round(p * 10); return `<span class="prog">${'█'.repeat(n)}<i>${'░'.repeat(10 - n)}</i></span> <span class="dim">${Math.round(p * 100)}%</span>`; };
@@ -624,14 +661,14 @@ function readme() {
     ['or launch with your own wallet', 'pick "connect wallet" in the creator step. your wallet signs and pays the launch (a little SOL) and can add a dev buy in the same transaction. it becomes the creator and shows as the dev on the chart, so the coin is linked to that wallet. the coin\'s own key is still made in your browser. there is no daily limit for wallet launches. phantom, solflare, backpack and other wallets that support the wallet standard work. on a phone, open the site inside your wallet\'s browser.'],
     ['what stays public', 'everything on solana is public: the coin, its trades, the creator address, the launch wallet and the fact that the dao treasury funded it. what is not public is any link from those to you, unless you make one.'],
     ['keep your key safe', 'the creator key controls the fees. never share the secret. dao will never ask for it: claim.exe signs in your browser and only sends signatures. if you lose the key, the fees stay unclaimable. nobody can recover it, including us.'],
-    ['tools on the desktop', [
-      'strip.exe   drop any photo to see what it carries besides the picture: camera, lens, time, the place it was taken. then keep a clean copy, or use it as a coin image. you can also drop a photo anywhere on the desktop.',
+    ['tools in the os', [
+      'strip.exe   drop any photo to see what it carries besides the picture: camera, lens, time, the place it was taken. then keep a clean copy, or use it as a coin image. you can also drop a photo anywhere in the os.',
       'scan.exe    a live check of this page: every request it made, every server it reached, cookies, trackers and the security policy.',
       'cd player   the soundtrack, made by code in your browser while you listen. two tracks, a volume and a visualizer.',
       'paint.exe   draw a 32 x 32 coin and send it straight to the launch wizard.',
       'sweeper     tracker sweeper. clear the board without hitting a tracker.',
     ]],
-    ['commands', 'in room 00, type on the screen: launch, coins, claim, layers or docs to go straight there, or press enter to just go in. lights, lamp and racks do what you think. on the desktop, cmd.exe takes launch, coins, claim, status, privacy, paint, sweeper, strip, scan, music, color, scr, readme, whoami, ver, cls and exit. type help in either.'],
+    ['commands', 'in room 00, type on the screen: launch, coins, claim, layers or docs to go straight there, or press enter to just go in. lights, lamp and racks do what you think. in the os, the command bar at the bottom and cmd.exe take launch, coins, claim, status, privacy, paint, sweeper, strip, scan, music, color, scr, readme, home, room, whoami, ver, cls and exit. type help in any of them. ctrl k (⌘k on a mac) searches every app and every part of home.'],
   ];
   const Q = [
     ['is it really free?', 'yes. creating a pump.fun coin costs a little SOL in account rent and network fees, and the dao treasury pays it. you pay nothing and sign nothing.'],
@@ -648,18 +685,16 @@ function readme() {
     + `<h5>[ questions ]</h5>` + Q.map(([q, a]) => `<h5>> ${esc(q)}</h5><p>${esc(a)}</p>`).join('');
 }
 // ================================================================ cmd.exe
-function cmd() {
-  const out = $('#cmdOut'), inp = $('#cmdIn');
-  const print = (h, cls) => { const d = document.createElement('div'); if (cls) d.className = cls; d.innerHTML = h; out.appendChild(d); $('#cmdBody').scrollTop = 1e9; };
-  print('dao [version 4.10.1998]', 'm'); print('(c) nobody. all rights unclaimed.', 'm'); print('&nbsp;'); print('type <span class="g">help</span> for commands.');
-  $('#cmdBody').addEventListener('click', () => inp.focus());
+// the commands, shared by cmd.exe and the command bar at the bottom of the os
+function commands(print, clear, close) {
   const C = {
-    help: () => [['launch', 'open the launch wizard'], ['coins', 'list the newest coins'], ['claim', 'open claim.exe'], ['status', 'treasury and launches'], ['privacy', 'the six layers'], ['paint', 'draw a coin'], ['sweeper', 'tracker sweeper'], ['color', 'color amber|teal|rose|ice|mono'], ['scr', 'start the screensaver'], ['readme', 'open readme.txt'], ['strip', 'see and remove what a photo carries'], ['scan', 'check what this page talks to'], ['music', 'open the cd player'], ['whoami', 'who are you?'], ['ver', 'version'], ['cls', 'clear the screen'], ['exit', 'close this window']].forEach(([a, b]) => print(`<span class="g">${a.padEnd(9, ' ')}</span><span class="m">${b}</span>`)),
+    help: () => [['launch', 'open the launch wizard'], ['coins', 'list the newest coins'], ['claim', 'open claim.exe'], ['status', 'is it open?'], ['privacy', 'the six layers'], ['home', 'back to the home screen'], ['paint', 'draw a coin'], ['sweeper', 'tracker sweeper'], ['color', 'color amber|teal|rose|ice|mono'], ['scr', 'start the screen saver'], ['readme', 'open readme.txt'], ['strip', 'see and remove what a photo carries'], ['scan', 'check what this page talks to'], ['music', 'open the cd player'], ['room', 'back to room 00'], ['whoami', 'who are you?'], ['ver', 'version'], ['cls', 'clear the screen'], ['exit', 'close this']].forEach(([a, b]) => print(`<span class="g">${a.padEnd(9, ' ')}</span><span class="m">${b}</span>`)),
     status: () => { const s = STATUS; if (!s) return print('offline.', 'm'); print(`network    ${esc(s.network)}`); print(`launches   ${s.ready ? '<span class="ok">open</span>' : '<span class="g">paused for now</span>'}`); },
     coins: () => { if (!COINS.length) return print('no coins yet. type <span class="g">launch</span> to make the first.', 'm'); COINS.slice(0, 8).forEach(c => print(`<span class="g">$${esc(c.symbol).padEnd(10, ' ')}</span>${esc(c.name).slice(0, 22).padEnd(23, ' ')}<span class="m">${ago(c.at).padEnd(5, ' ')}</span>${c.mcapUsd ? usd(c.mcapUsd) : ''}`)); },
     launch: () => { print('starting launch.exe …', 'm'); WM.open('launch'); }, claim: () => { print('starting claim.exe …', 'm'); WM.open('claim'); },
-    privacy: () => WM.open('privacy'), layers: () => WM.open('privacy'), readme: () => WM.open('readme'), docs: () => WM.open('readme'),
-    strip: () => WM.open('strip'), scan: () => WM.open('scan'), cd: () => WM.open('cd'), music: () => WM.open('cd'), play: () => WM.open('cd'),
+    privacy: () => WM.open('privacy'), layers: () => WM.open('privacy'), readme: () => WM.open('readme'), docs: () => WM.open('readme'), help2: () => WM.open('readme'),
+    strip: () => WM.open('strip'), scan: () => WM.open('scan'), cd: () => WM.open('cd'), music: () => WM.open('cd'), play: () => WM.open('cd'), cmd: () => WM.open('cmd'),
+    home: () => showHome(), room: () => backToRoom(), search: () => openPal(), find: () => openPal(),
     // owner only and not in help: send everything in the treasury back to the owner wallet, after it signs a message
     sweep: async () => {
       let cur = WAL.current();
@@ -676,20 +711,32 @@ function cmd() {
       } catch (e) { print(esc(e.message), 'r'); }
     },
     whoami: () => print('nobody', 'ok'), ver: () => print('dao [version 4.10.1998]'), date: () => print(new Date().toString()), time: () => print(new Date().toLocaleTimeString()),
-    cls: () => { out.innerHTML = ''; }, clear: () => { out.innerHTML = ''; }, exit: () => WM.close('cmd'),
+    cls: clear, clear, exit: close,
     dir: () => ['launch.exe', 'coins.db', 'claim.exe', 'paint.exe', 'sweeper.exe', 'privacy.cpl', 'display.cpl', 'readme.txt'].forEach(f => print(`10-20-98  12:00a    ${f}`)),
     sudo: () => print('nice try. there is no root here, only nobody.', 'm'),
     paint: () => WM.open('paint'), mspaint: () => WM.open('paint'), sweeper: () => WM.open('sweeper'), winmine: () => WM.open('sweeper'), display: () => WM.open('display'), run: () => WM.open('run'),
     scr: () => HOOKS.saver && HOOKS.saver.start(), saver: () => HOOKS.saver && HOOKS.saver.start(),
     color: rest => { const a = (rest[0] || '').toLowerCase(), ok = ['amber', 'teal', 'rose', 'ice', 'mono']; if (!ok.includes(a)) return print('usage: color amber | teal | rose | ice | mono', 'm'); HOOKS.setAccent(a); print(`accent set to ${a}.`, 'ok'); },
   };
+  return {
+    run(raw) {
+      const [c, ...rest] = raw.trim().split(/\s+/); const k = (c || '').toLowerCase(); if (!k) return;
+      if (k === 'echo') return print(esc(rest.join(' ')));
+      if (k === 'start' && rest[0]) { const a = { 'launch.exe': 'launch', 'claim.exe': 'claim', 'coins.db': 'coins', 'readme.txt': 'readme', 'privacy.cpl': 'privacy', 'paint.exe': 'paint', 'sweeper.exe': 'sweeper', 'display.cpl': 'display', 'strip.exe': 'strip', 'scan.exe': 'scan', 'cdplayer.exe': 'cd', 'cmd.exe': 'cmd' }[rest[0].toLowerCase()] || rest[0].toLowerCase(); return WM.open(a); }
+      (C[k] || (() => print(`'${esc(k)}' is not recognized as an internal or external command. type <span class="g">help</span>.`, 'm')))(rest);
+    },
+  };
+}
+function cmd() {
+  const out = $('#cmdOut'), inp = $('#cmdIn');
+  const print = (h, cls) => { const d = document.createElement('div'); if (cls) d.className = cls; d.innerHTML = h; out.appendChild(d); $('#cmdBody').scrollTop = 1e9; };
+  print('dao [version 4.10.1998]', 'm'); print('(c) nobody. all rights unclaimed.', 'm'); print('&nbsp;'); print('type <span class="g">help</span> for commands.');
+  $('#cmdBody').addEventListener('click', () => inp.focus());
+  const CMD = commands(print, () => { out.innerHTML = ''; }, () => WM.close('cmd'));
   inp.addEventListener('keydown', e => {
     if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Enter') SOUND.sfx('key');
     if (e.key !== 'Enter') return; const raw = inp.value; inp.value = ''; print(`<span class="ok">C:\\DAO&gt;</span> ${esc(raw)}`);
-    const [c, ...rest] = raw.trim().split(/\s+/); const k = (c || '').toLowerCase(); if (!k) return;
-    if (k === 'echo') return print(esc(rest.join(' ')));
-    if (k === 'start' && rest[0]) { const a = { 'launch.exe': 'launch', 'claim.exe': 'claim', 'coins.db': 'coins', 'readme.txt': 'readme', 'privacy.cpl': 'privacy', 'paint.exe': 'paint', 'sweeper.exe': 'sweeper', 'display.cpl': 'display', 'strip.exe': 'strip', 'scan.exe': 'scan', 'cdplayer.exe': 'cd' }[rest[0].toLowerCase()] || rest[0].toLowerCase(); return WM.open(a); }
-    (C[k] || (() => print(`'${esc(k)}' is not recognized as an internal or external command.`, 'm')))(rest);
+    CMD.run(raw);
   });
 }
 // ================================================================ recycle bin
