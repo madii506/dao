@@ -20,7 +20,6 @@ const FAQ = [
   ['who gets the fees?', 'your creator key. dao takes no cut.'],
   ['can dao touch my coin?', 'no. it never sees your key.'],
   ['what stays public?', 'the coin and its trades, like any coin. nothing links them to you.'],
-  ['financial advice?', 'no. memecoins are risky. most go to zero.'],
 ];
 const LOG = [['simulate create_v2 on mainnet', 'ok'], ['fund a fresh launcher, to the lamport', 'ok'], ['sign: launcher + mint', 'ok'], ['send', 'confirmed'], ['launcher balance after', '0'], ['names on it', 'none']];
 
@@ -115,7 +114,7 @@ export function mountHome({ root, mobile }) {
     if (!e.isIntersecting || s.classList.contains('vis')) return;
     s.classList.add('vis'); $$('[data-dec]', s).forEach(decrypt);
     if (s.id === 'h-tech') setTimeout(() => typeLog($('#hLog', root)), 650);
-    if (s.id === 'h-top') { $$('.zeros b', s).forEach((b, i) => setTimeout(() => roll(b), 650 + i * 140)); setTimeout(() => typeLine($('.lead', s)), 620); }
+    if (s.id === 'h-top') setTimeout(() => typeLine($('.lead', s)), 620);
     if (s.id === 'h-how') { $$('.steps i', s).forEach((b, i) => setTimeout(() => roll(b), 250 + i * 90)); setTimeout(() => $('.steps', s).classList.add('done'), 1500); }
     if (s.id === 'h-apps') setTimeout(() => $('.tiles', s).classList.add('done'), 1600);
   }), { root, threshold: .12 });

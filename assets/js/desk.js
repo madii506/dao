@@ -4,7 +4,7 @@ import { install } from './apps98.js?v=5';
 import { install as installTools } from './tools98.js?v=3';
 import { createSound } from './sound98.js?v=7';
 import * as WAL from './wallet98.js?v=2';
-import { mountHome } from './home.js?v=3';
+import { mountHome } from './home.js?v=4';
 import { mountFx } from './fx.js?v=1';
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -62,7 +62,7 @@ async function boot() {
   try {
     const gl = document.createElement('canvas').getContext('webgl2') || document.createElement('canvas').getContext('webgl');
     if (!gl) throw new Error('no webgl');
-    const { run } = await import('./intro3d.js?v=15');
+    const { run } = await import('./intro3d.js?v=16');
     const statusP = fetch('/api/status').then(r => r.json()).catch(() => null);
     window.__dao = await run({ canvas, mobile: MOBILE || LOWQ, onEnter: go, status: statusP, audio: SOUND,
       onReady: () => { $('#itouch').classList.add('on'); } });
@@ -711,7 +711,6 @@ function readme() {
     ['can dao take my fees or my coin?', 'no. dao never sees the creator key, never buys the coin, and the launch wallet ends empty. dao only holds its own treasury key, which pays launch costs and claim fees.'],
     ['can i edit or delete a coin?', 'no. a coin on pump.fun cannot be edited or deleted after launch, so check the review step.'],
     ['does dao keep logs?', 'dao stores each launch (the coin details and addresses, which are public anyway). for the daily limit only, it also keeps a salted hash of your IP, which is useless the next day and then deleted. there are no accounts, no cookies and no analytics. the host still sees requests, as every host does.'],
-    ['is this financial advice?', 'no. memecoins are extremely risky and most go to zero. dao is a tool and is not affiliated with pump.fun.'],
   ];
   const body = v => esc(Array.isArray(v) ? v.join('\n') : v);
   $('#readmeBody').innerHTML = `<h5>README.TXT  ·  dao</h5><p>every launch is a dao. a privacy layer for pump.fun.\nno wallet. no signature. no name. no SOL either.</p>`

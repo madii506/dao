@@ -1,6 +1,6 @@
 // The way in, as one moving shot: a corridor lit red at 23:58, a keycard on the reader, ACCESS GRANTED, the doors of room 00
-// run into the wall and the strip lights catch down an aisle of servers. Walking it, the power cuts out once and someone is
-// standing at the end; the lights come back, the bench lamp, then the beige PC boots. Click its screen to go in.
+// run into the wall and the strip lights catch down an aisle of servers. Walking it, the power cuts out once and
+// the aisle goes red; the lights come back, the bench lamp, then the beige PC boots. Click its screen to go in.
 import * as THREE from './vendor/three.module.min.js';
 import { RoundedBoxGeometry } from './vendor/RoundedBoxGeometry.js';
 import { EffectComposer } from './vendor/EffectComposer.js';
@@ -421,31 +421,6 @@ function build(scene, mobile) {
     const led = new THREE.MeshBasicMaterial({ color: 0x150404, toneMapped: false }); mesh(new THREE.BoxGeometry(.008, .008, .004), led, .026, .026, .147, head);
     const c = { base, head, led, ledOn, rest: new THREE.Quaternion() }; cams.push(c); return c;
   };
-  // the one nobody signed in: a hooded shape, backlit, only there while the power is out
-  const figT = tex(256, 704, (g, w, h) => {
-    const X = v => w * v, Y = v => h * v;
-    const path = () => { g.beginPath(); g.moveTo(X(.52), Y(.035));
-      g.bezierCurveTo(X(.66), Y(.03), X(.72), Y(.1), X(.69), Y(.17));                    // hood, right
-      g.bezierCurveTo(X(.68), Y(.19), X(.72), Y(.2), X(.86), Y(.225));                    // into the shoulder
-      g.bezierCurveTo(X(.97), Y(.25), X(.99), Y(.33), X(.97), Y(.45));                    // right arm
-      g.bezierCurveTo(X(.96), Y(.52), X(.95), Y(.56), X(.93), Y(.58));                    // hand
-      g.bezierCurveTo(X(.9), Y(.6), X(.87), Y(.56), X(.86), Y(.5));
-      g.bezierCurveTo(X(.85), Y(.62), X(.84), Y(.8), X(.88), Y(.97));                     // coat, right
-      g.lineTo(X(.8), Y(.995)); g.lineTo(X(.7), Y(.975)); g.lineTo(X(.58), Y(.998)); g.lineTo(X(.45), Y(.978)); g.lineTo(X(.32), Y(.996)); g.lineTo(X(.2), Y(.975));
-      g.bezierCurveTo(X(.16), Y(.8), X(.15), Y(.62), X(.14), Y(.5));                      // coat, left
-      g.bezierCurveTo(X(.13), Y(.56), X(.1), Y(.6), X(.07), Y(.58));
-      g.bezierCurveTo(X(.05), Y(.56), X(.04), Y(.52), X(.03), Y(.45));                    // left arm
-      g.bezierCurveTo(X(.01), Y(.33), X(.04), Y(.25), X(.15), Y(.225));
-      g.bezierCurveTo(X(.29), Y(.2), X(.33), Y(.19), X(.32), Y(.17));
-      g.bezierCurveTo(X(.29), Y(.1), X(.36), Y(.04), X(.52), Y(.035)); g.closePath(); };
-    g.filter = 'blur(10px)'; g.fillStyle = 'rgba(255,52,34,.42)'; path(); g.fill();
-    g.filter = 'blur(3px)'; g.fillStyle = 'rgba(255,90,60,.35)'; path(); g.fill();
-    g.filter = 'blur(1.5px)'; g.fillStyle = '#020203'; g.save(); g.translate(X(.5), Y(.6)); g.scale(.955, .975); g.translate(-X(.5), -Y(.6)); path(); g.fill(); g.restore(); g.filter = 'none';
-    const fade = g.createLinearGradient(0, Y(.82), 0, h); fade.addColorStop(0, 'rgba(0,0,0,0)'); fade.addColorStop(1, 'rgba(0,0,0,1)');
-    g.globalCompositeOperation = 'destination-out'; g.fillStyle = fade; g.fillRect(0, Y(.82), w, h); g.globalCompositeOperation = 'source-over';
-  });
-  const figure = new THREE.Sprite(new THREE.SpriteMaterial({ map: figT, transparent: true, depthWrite: false })); figure.scale.set(.74, 1.84, 1); figure.visible = false; scene.add(figure);
-
   // ---- the end of the aisle: a UPS cabinet, the gas bottle, the bench with the PC
   const ups = new THREE.Group(); ups.position.set(-ROOM_X + .46, F, 1.0); scene.add(ups);
   box(.9, 1.9, .7, std({ color: 0x1b1d21, roughness: .6, metalness: .3 }), 0, .95, 0, ups).rotation.y = Math.PI / 2;
@@ -648,7 +623,7 @@ function build(scene, mobile) {
   dg.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   const dustMat = new THREE.PointsMaterial({ color: 0xffe2b0, size: .006, transparent: true, opacity: 0, depthWrite: false }); const dust = new THREE.Points(dg, dustMat); scene.add(dust);
   const steam = Array.from({ length: 6 }, (_, i) => { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: puff, transparent: true, opacity: 0, depthWrite: false, color: 0xd8d2c4 })); s.userData.o = i / 6; scene.add(s); return s; });
-  return { floors, ledsM, shaftMats, beacon, board, cams, figure, mist, underGlow, term, panel, panelLed, panelLight, card, leaves, stripMats, aisle, spill, night, hemi, hazeMat, haze, leds, LD, ledMat, hddMat, monLed, glow, dust, dustMat, steam, lamp, bulbMat, fill, keys, base, kidx, screen, lcd };
+  return { floors, ledsM, shaftMats, beacon, board, cams, mist, underGlow, term, panel, panelLed, panelLight, card, leaves, stripMats, aisle, spill, night, hemi, hazeMat, haze, leds, LD, ledMat, hddMat, monLed, glow, dust, dustMat, steam, lamp, bulbMat, fill, keys, base, kidx, screen, lcd };
 }
 
 // ---------------------------------------------------------------- camera: marks in time, joined by a monotone cubic so it never overshoots
@@ -674,7 +649,7 @@ function track(K) {
 }
 // ---------------------------------------------------------------- the film: one camera move, the corridor to the pc
 // It moves by itself: down the corridor to the reader, the card, the doors, then the walk down the aisle while the strips
-// catch. Halfway down it the power cuts out and somebody is standing at the end; the lights come back, then the lamp,
+// catch. Halfway down it the power cuts out and the aisle goes red; the lights come back, then the lamp,
 // the CRT and the boot. A key, a click or a scroll skips it and glides you to the pc.
 const END = 15;           // the camera reaches the pc
 const BOOT_K = .8;        // the boot runs a touch quicker than a real one
@@ -770,7 +745,7 @@ export async function run({ canvas, onEnter, onReady, mobile, status, audio }) {
   resize(true); addEventListener('resize', resize);
   // compile every material once, hidden ones included, so nothing hitches the first time it appears
   try {
-    const hid = [P.figure, P.card]; hid.forEach(o => { o.visible = true; }); cam.position.set(0, 1, 9); cam.lookAt(0, .6, 0); cam.updateMatrixWorld();
+    const hid = [P.card]; hid.forEach(o => { o.visible = true; }); cam.position.set(0, 1, 9); cam.lookAt(0, .6, 0); cam.updateMatrixWorld();
     if (renderer.compileAsync) await Promise.race([renderer.compileAsync(scene, cam), new Promise(r => setTimeout(r, 3000))]); else renderer.compile(scene, cam);
     hid.forEach(o => { o.visible = false; });
   } catch {}
@@ -1050,10 +1025,6 @@ export async function run({ canvas, onEnter, onReady, mobile, status, audio }) {
     else { P.night.position.set(0, 1.8, -.55); P.night.intensity = 7 * st.red * pulse; }
     P.beacon.color.setRGB(.25 + 3.6 * st.red * pulse, .02 + .25 * st.red * pulse, .02 + .15 * st.red * pulse);
     film.uniforms.red.value = .32 * st.red; film.uniforms.time.value = t;
-    // whoever it is stands where the aisle meets the bench while the power is out, and behind the bench when you turn the lights off
-    const showFig = bo && ft > st.boT + .1 && ft < st.boT + BO_LEN - .03 && cam.position.z > 5.2;   // only ever far down the aisle
-    P.figure.visible = !!(showFig || (egg && st.lk < .2));
-    if (showFig) P.figure.position.set(-.1, F + .92, 1.3); else if (egg) P.figure.position.set(.98, F + .92, -.52);
     drawBoard(alarm ? 2 : 1, alarm, Math.floor(t * 1.4) % 2 === 0);
     // the cameras turn to follow you; the one at the door stops recording once you are let in
     for (const c of P.cams) {
