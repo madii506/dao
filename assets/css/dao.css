@@ -165,14 +165,6 @@ kbd { font: 500 10.5px var(--mono); border: 1px solid var(--line2); border-botto
 @media (min-width: 761px) { .hero h1 { white-space: nowrap; } }
 .lead { font-size: 15px; line-height: 1.7; max-width: 560px; color: rgba(232,226,210,.8) !important; }
 .ctas { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 28px; }
-.zeros { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin-top: 44px; max-width: 640px; border-top: 1px solid var(--line2); }
-.zeros div { position: relative; padding: 14px 14px 0 0; }
-.zeros div::after { content: ''; position: absolute; left: 0; top: -1px; height: 1px; width: 0; background: linear-gradient(90deg, var(--gold), transparent); transition: width 1.2s var(--ease); }
-.zeros div + div::after { left: 14px; }
-.hs.vis .zeros div::after { width: 60%; } .zeros div:nth-child(2)::after { transition-delay: .15s; } .zeros div:nth-child(3)::after { transition-delay: .3s; } .zeros div:nth-child(4)::after { transition-delay: .45s; }
-.zeros div + div { padding-left: 14px; border-left: 1px solid var(--line); }
-.zeros b { display: block; font: 400 42px/1 var(--pix); color: var(--gold); } .zeros b.t { color: var(--teal); }
-.zeros span { display: block; margin-top: 6px; font-size: 11px; color: var(--dim); line-height: 1.35; }
 .hero-r { position: relative; will-change: transform; }
 .hud { position: relative; overflow: hidden; width: 100%; max-width: 580px; margin-left: auto; aspect-ratio: 1 / 1; background: radial-gradient(circle at 50% 46%, rgba(98,240,200,.07), rgba(5,6,7,0) 60%); }
 .hud::after { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 22%; background: linear-gradient(180deg, transparent, rgba(98,240,200,.05) 70%, rgba(98,240,200,.16) 97%, transparent); transform: translateY(-110%); animation: sweep 6s cubic-bezier(.45,0,.55,1) infinite 1.5s; pointer-events: none; }
@@ -288,7 +280,6 @@ kbd { font: 500 10.5px var(--mono); border: 1px solid var(--line2); border-botto
 .hfoot > b { font: 400 40px/1 var(--pix); color: #f3eddb; margin-right: auto; } .hfoot > b i { color: var(--gold); font-style: normal; animation: blink 1.1s steps(1) infinite; }
 .hfoot button, .hfoot a { display: inline-flex; gap: 8px; align-items: center; background: none; border: 0; color: var(--dim); padding: 6px 0; cursor: pointer; font-size: 12px; text-decoration: none; }
 .hfoot button:hover, .hfoot a:hover { color: var(--gold); } .hfoot .ico { width: 15px; height: 15px; }
-.hfoot small { font-size: 11px; color: var(--mute); }
 
 /* ================================================================ windows */
 #wins { position: absolute; inset: 0; pointer-events: none; z-index: 20; }
@@ -619,9 +610,6 @@ body.crt #os::after { content: ''; position: fixed; inset: 0; pointer-events: no
   .hero { grid-template-columns: 1fr; gap: 26px; min-height: 0; padding-top: 36px; padding-bottom: 30px; }
   .hero h1 { font-size: clamp(46px, 14vw, 64px); margin: 20px 0 16px; }
   .lead { font-size: 14px; }
-  .zeros { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 30px; }
-  .zeros div:nth-child(3) { padding-left: 0; border-left: 0; } .zeros div:nth-child(n+3) { border-top: 1px solid var(--line); margin-top: 12px; }
-  .zeros b { font-size: 36px; }
   .hud { max-width: none; margin: 0 auto; width: min(100%, 420px); }
   .hs h2 { margin-bottom: 24px; }
   .trio, .tech, .faq, .layers { grid-template-columns: 1fr; }
