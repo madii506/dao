@@ -39,11 +39,11 @@ const GL = '01<>/\\|#%&$@*+=?';
 function decrypt(el) {                                    // the heading arrives scrambled and resolves left to right
   if (el.dataset.done) return; el.dataset.done = '1';
   const nodes = []; const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT); let n; while ((n = w.nextNode())) nodes.push([n, n.textContent]);
-  const total = 20; let f = 0;
+  const DUR = 620, t0 = performance.now() + 180;               // time based, so a slow device still lands on time
   const tick = () => {
-    f++; const k = f / total;
+    const k = Math.max(0, Math.min(1, (performance.now() - t0) / DUR));
     for (const [node, txt] of nodes) { const res = Math.floor(txt.length * k); let out = txt.slice(0, res); for (let i = res; i < txt.length; i++) out += txt[i] === ' ' ? ' ' : GL[(Math.random() * GL.length) | 0]; node.textContent = out; }
-    if (f < total) setTimeout(tick, 28); else nodes.forEach(([node, txt]) => { node.textContent = txt; });
+    if (k < 1) setTimeout(tick, 28); else nodes.forEach(([node, txt]) => { node.textContent = txt; });
   };
   for (const [node, txt] of nodes) node.textContent = txt.replace(/\S/g, () => GL[(Math.random() * GL.length) | 0]);
   setTimeout(tick, 180);
@@ -67,15 +67,25 @@ function words(el) {                                      // split a paragraph i
   });
   walk(el); return [...el.querySelectorAll('.wd')];
 }
-function roll(el) {                                       // a digit spins and lands where it belongs
-  if (el.dataset.done) return; el.dataset.done = '1'; const to = el.textContent; let n = 0;
-  const t = setInterval(() => { n++; el.textContent = n < 14 ? String((Math.random() * 10) | 0) : to; if (n >= 14) clearInterval(t); }, 42);
+function roll(el) {                                       // digits spin and land where they belong
+  if (el.dataset.done) return; el.dataset.done = '1'; const to = el.textContent, t0 = performance.now();
+  const t = setInterval(() => { const done = performance.now() - t0 > 600; el.textContent = done ? to : to.replace(/\d/g, () => (Math.random() * 10) | 0); if (done) clearInterval(t); }, 42);
+}
+function typeLine(el) {                                   // a line types itself out, a caret blinking after it
+  if (!el || el.dataset.done) return; el.dataset.done = '1'; const txt = el.textContent, t0 = performance.now();
+  el.textContent = ''; const out = document.createElement('span'), cur = document.createElement('i'); cur.className = 'caret'; el.append(out, cur);
+  const t = setInterval(() => { const i = Math.min(txt.length, Math.floor((performance.now() - t0) / 32) + 1); out.textContent = txt.slice(0, i); if (i >= txt.length) clearInterval(t); }, 32);
 }
 
 export function mountHome({ root, mobile }) {
   const secs = $$('.hs', root), RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
   secs.forEach(sec => $$('.rv', sec).forEach((el, i) => el.style.setProperty('--d', Math.min(i, 12))));
   $('#hFaq', root).innerHTML = FAQ.map(([q, a]) => `<details><summary>${esc(q)}</summary><div class="a">${esc(a)}</div></details>`).join('');
+  $$('#hFaq details', root).forEach(d => d.querySelector('summary').addEventListener('click', e => {
+    if (RM) return; e.preventDefault(); const a = d.querySelector('.a');
+    if (!d.open) { d.open = true; const h = a.scrollHeight; a.animate([{ height: '0px', opacity: 0 }, { height: h + 'px', opacity: 1 }], { duration: 280, easing: 'cubic-bezier(.2,.75,.2,1)' }); }
+    else { const h = a.scrollHeight; const an = a.animate([{ height: h + 'px', opacity: 1 }, { height: '0px', opacity: 0 }], { duration: 220, easing: 'ease' }); an.onfinish = () => { d.open = false; }; }
+  }));
 
   // the six layers: tabs, a card and the rings. they turn over by themselves while you look, and stop when you pick one
   const tabs = $('#hTabs', root), card = $('#hCard', root), ringsEl = $('#hRings', root), lbar = $('#hLbar', root);
@@ -85,7 +95,8 @@ export function mountHome({ root, mobile }) {
     cur = i; const l = LAYERS[i];
     card.innerHTML = `<div class="num">0${i + 1}</div><h4>${l[1]}</h4><p>${esc(l[2])}</p><div class="pub"><b>public:</b> ${esc(l[3])}</div>`;
     card.classList.remove('swap'); void card.offsetWidth; card.classList.add('swap');
-    ringsEl.innerHTML = rings(i);
+    clearInterval(show.t); let k = 0; ringsEl.innerHTML = rings(0);
+    if (i > 0) show.t = setInterval(() => { k++; ringsEl.innerHTML = rings(Math.min(i, k)); if (k >= i) clearInterval(show.t); }, 60);
     $$('button', tabs).forEach((b, k) => { b.classList.toggle('on', k === i); b.setAttribute('aria-selected', String(k === i)); });
     layT = performance.now();
   };
@@ -104,7 +115,9 @@ export function mountHome({ root, mobile }) {
     if (!e.isIntersecting || s.classList.contains('vis')) return;
     s.classList.add('vis'); $$('[data-dec]', s).forEach(decrypt);
     if (s.id === 'h-tech') setTimeout(() => typeLog($('#hLog', root)), 650);
-    if (s.id === 'h-top') $$('.zeros b', s).forEach((b, i) => setTimeout(() => roll(b), 650 + i * 140));
+    if (s.id === 'h-top') { $$('.zeros b', s).forEach((b, i) => setTimeout(() => roll(b), 650 + i * 140)); setTimeout(() => typeLine($('.lead', s)), 620); }
+    if (s.id === 'h-how') { $$('.steps i', s).forEach((b, i) => setTimeout(() => roll(b), 250 + i * 90)); setTimeout(() => $('.steps', s).classList.add('done'), 1500); }
+    if (s.id === 'h-apps') setTimeout(() => $('.tiles', s).classList.add('done'), 1600);
   }), { root, threshold: .12 });
   secs.forEach(s => io.observe(s));
   if (RM) secs.forEach(s => s.classList.add('vis'));

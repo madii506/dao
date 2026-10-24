@@ -76,6 +76,13 @@ export function mountAscii(canvas, { onReady } = {}) {
   layout();
   let mx = 0, my = 0, tx = 0, ty = 0;
   window.addEventListener('pointermove', e => { tx = (e.clientX / innerWidth - .5) * 2; ty = (e.clientY / innerHeight - .5) * 2; }, { passive: true });
+  // grab it and spin it; let go and it coasts, then settles back to face you
+  let spinA = 0, spinV = 0, drag = null, lastF = 0;
+  canvas.style.touchAction = 'pan-y'; canvas.style.cursor = 'grab';
+  canvas.addEventListener('pointerdown', e => { drag = { x: e.clientX, t: performance.now() }; spinV = 0; try { canvas.setPointerCapture(e.pointerId); } catch {} canvas.style.cursor = 'grabbing'; });
+  canvas.addEventListener('pointermove', e => { if (!drag) return; const now = performance.now(), dx = e.clientX - drag.x, d = Math.max(8, now - drag.t); spinA += dx * .011; spinV = Math.max(-14, Math.min(14, spinV * .5 + dx * .011 / (d / 1000) * .5)); drag.x = e.clientX; drag.t = now; });
+  const end = () => { if (!drag) return; drag = null; canvas.style.cursor = 'grab'; };
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(t => canvas.addEventListener(t, end));
   new ResizeObserver(() => layout()).observe(canvas);
   let visible = true, paused = false, off = false;
   new IntersectionObserver(es => { visible = es[0].isIntersecting; }, { threshold: 0 }).observe(canvas);
@@ -84,9 +91,10 @@ export function mountAscii(canvas, { onReady } = {}) {
   function frame(now) {
     requestAnimationFrame(frame);
     if (!visible || paused || off || document.hidden || now - last < 33) return; last = now;
-    const t = (now - t0) / 1000;
+    const t = (now - t0) / 1000, dt = Math.min(.1, lastF ? (now - lastF) / 1000 : .033); lastF = now;
     mx += (tx - mx) * .05; my += (ty - my) * .05;
-    const az = Math.sin(t * .32) * .55 + mx * .35, el = .3 + my * .08 + Math.sin(t * .5) * .02, dist = 2.42;
+    if (!drag) { spinA += spinV * dt; spinV *= Math.exp(-2.2 * dt); if (Math.abs(spinV) < .5) { spinA = Math.atan2(Math.sin(spinA), Math.cos(spinA)); spinA *= Math.exp(-1.5 * dt); } }
+    const az = Math.sin(t * .32) * .55 + mx * .35 + spinA, el = .3 + my * .08 + Math.sin(t * .5) * .02, dist = 2.42;
     cam.position.set(Math.sin(az) * dist, .5 + el * 1.3, Math.cos(az) * dist); cam.lookAt(0, .42, -.02);
     pc.position.y = Math.sin(t * 1.1) * .012;
     led.material.color.setHex(Math.sin(t * 7) > .2 ? 0x3dff8a : 0x1a6a3a);

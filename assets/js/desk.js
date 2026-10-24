@@ -1,10 +1,11 @@
 // DAO: the room, the boot on the CRT, then the dao os inside the pc: a home you scroll, a dock, a command bar and
 // windows that all work.
-import { install } from './apps98.js?v=4';
+import { install } from './apps98.js?v=5';
 import { install as installTools } from './tools98.js?v=3';
 import { createSound } from './sound98.js?v=7';
 import * as WAL from './wallet98.js?v=2';
-import { mountHome } from './home.js?v=2';
+import { mountHome } from './home.js?v=3';
+import { mountFx } from './fx.js?v=1';
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const MOBILE = matchMedia('(max-width: 760px)').matches || matchMedia('(hover: none)').matches;
@@ -136,15 +137,34 @@ const WM = {
     if (app === 'x') { if (STATUS && STATUS.x) window.open(STATUS.x, '_blank', 'noopener,noreferrer'); return; }
     const w = this.wins[app]; if (!w) return;
     closeMenus(); closePal();
+    if (w.classList.contains('leaving')) { clearTimeout(w._lt); w.classList.remove('leaving'); }
     const was = w.classList.contains('open');
-    if (!was) { w.classList.add('open'); if (!w.dataset.placed) { this.place(w); w.dataset.placed = '1'; } this.task(app, true); }
+    if (!was) {
+      w.classList.remove('from'); w.classList.add('open'); if (!w.dataset.placed) { this.place(w); w.dataset.placed = '1'; } this.task(app, true);
+      const src = fromEl || $(`#odock [data-open="${app}"]`) || $(`#tasks [data-task="${app}"]`);
+      if (src && !NARROW() && !RM) { const f = src.getBoundingClientRect(), r = w.getBoundingClientRect(); w.style.transformOrigin = `${Math.round(f.left + f.width / 2 - r.left)}px ${Math.round(f.top + f.height / 2 - r.top)}px`; void w.offsetWidth; w.classList.add('from'); }
+    }
     w.classList.remove('minimized'); this.focus(app);
     if (!was) { this.zoom(fromEl ? this.rectOf(fromEl) : null, this.rectOf(w)); SOUND.sfx('open'); }
     if (APPS[app] && APPS[app].open && (!was || arg !== undefined)) APPS[app].open(arg);
   },
-  close(app) { const w = this.wins[app]; if (!w) return; if (w.classList.contains('open')) SOUND.sfx('close'); w.classList.remove('open', 'active', 'max', 'minimized'); this.task(app, false); APPS[app] && APPS[app].close && APPS[app].close(); this.focusTop(); },
-  min(app, quiet) { const w = this.wins[app], b = $(`#tasks [data-task="${app}"]`) || $(`#odock [data-open="${app}"]`); if (!quiet && b) this.zoom(this.rectOf(w), this.rectOf(b)); w.classList.remove('open', 'active'); w.classList.add('minimized'); this.syncTasks(); if (!quiet) this.focusTop(); },
-  restore(app) { const w = this.wins[app], b = $(`#tasks [data-task="${app}"]`); w.classList.remove('minimized'); w.classList.add('open'); this.focus(app); if (b) this.zoom(this.rectOf(b), this.rectOf(w)); },
+  // windows leave with a short shrink before they go
+  leave(w, fin, to) {
+    if (RM || !w.classList.contains('open')) return fin();
+    if (to) { const f = to.getBoundingClientRect(), r = w.getBoundingClientRect(); w.style.transformOrigin = `${Math.round(f.left + f.width / 2 - r.left)}px ${Math.round(f.top + f.height / 2 - r.top)}px`; }
+    w.classList.remove('from'); w.classList.toggle('tomin', !!to); w.classList.add('leaving'); clearTimeout(w._lt); w._lt = setTimeout(() => { w.classList.remove('leaving', 'tomin'); fin(); }, to ? 240 : 170);
+  },
+  close(app) { const w = this.wins[app]; if (!w || w.classList.contains('leaving')) return; if (w.classList.contains('open')) SOUND.sfx('close');
+    this.leave(w, () => { w.classList.remove('open', 'active', 'max', 'minimized'); this.task(app, false); APPS[app] && APPS[app].close && APPS[app].close(); this.focusTop(); }); },
+  min(app, quiet) { const w = this.wins[app], b = $(`#tasks [data-task="${app}"]`) || $(`#odock [data-open="${app}"]`); if (!w || w.classList.contains('leaving')) return;
+    this.leave(w, () => { w.classList.remove('open', 'active'); w.classList.add('minimized'); this.syncTasks(); if (!quiet) this.focusTop(); }, NARROW() ? null : b); },
+  restore(app) {
+    const w = this.wins[app], b = $(`#tasks [data-task="${app}"]`) || $(`#odock [data-open="${app}"]`);
+    if (w.classList.contains('leaving')) { clearTimeout(w._lt); w.classList.remove('leaving', 'tomin'); }
+    w.classList.remove('minimized', 'from'); w.classList.add('open');
+    if (b && !RM && !NARROW()) { const f = b.getBoundingClientRect(), r = w.getBoundingClientRect(); w.style.transformOrigin = `${Math.round(f.left + f.width / 2 - r.left)}px ${Math.round(f.top + f.height / 2 - r.top)}px`; void w.offsetWidth; w.classList.add('from'); }
+    this.focus(app); if (b) this.zoom(this.rectOf(b), this.rectOf(w));
+  },
   max(app) { if (NARROW()) return; const w = this.wins[app], f = this.rectOf(w); w.classList.toggle('max'); this.zoom(f, this.rectOf(w)); },
   retitle(app, title) { const w = this.wins[app]; if (!w) return; w.dataset.title = title; this.title(w); const b = $(`#tasks [data-task="${app}"] span`); if (b) b.textContent = FILE[app] || title.split(' — ')[0]; },
   isActive(app) { const w = this.wins[app]; return !!(w && w.classList.contains('open') && w.classList.contains('active')); },
@@ -173,7 +193,7 @@ const WM = {
     $$('#odock [data-open], #otabs [data-open]').forEach(b => { const a = b.dataset.open; b.classList.toggle('on', a !== 'home' && live(a)); b.classList.toggle('act', a === (act || 'home')); });
     const where = $('#oWhere'); if (where) where.textContent = act ? (FILE[act] || act) : 'home';
     document.body.classList.toggle('haswin', !!act);
-    HOME && HOME.pause(!!act && NARROW()); WALL.covered = !!act && NARROW(); if (WALL.ctl) WALL.ctl.pause(WALL.paused || WALL.covered);
+    HOME && HOME.pause(!!act && NARROW()); WALL.covered = !!act && NARROW(); if (WALL.ctl) WALL.ctl.pause(WALL.paused || WALL.covered); FX && FX.pause(WALL.paused || WALL.covered);
   },
   // drag by the title bar. pushed against the left or right edge it snaps to that half of the screen; against the top it fills it
   drag(e, w) {
@@ -232,16 +252,16 @@ function showHome() {
 }
 
 // ================================================================ the os chrome: top bar, dock, tabs, command bar, search
-let HOOKS = {}, HOME = null;
+let HOOKS = {}, HOME = null, FX = null;
 function closeMenus() { HOOKS.closeClock && HOOKS.closeClock(); }
 // the home screen's pc: the ascii PC only runs when it is wanted, and pauses under the screensaver
 const WALL = { want: 'pc', ctl: null, paused: false, covered: false, loading: false };
 function setWall(v) {
   WALL.want = v; $('#wall').classList.toggle('off', v !== 'pc');
   if (WALL.ctl) WALL.ctl.show(v === 'pc');
-  else if (v === 'pc' && !RM && !WALL.loading && !$('#os').hidden) { WALL.loading = true; import('./ascii3d.js?v=3').then(m => { WALL.ctl = m.mountAscii($('#wall')); WALL.ctl.show(WALL.want === 'pc'); WALL.ctl.pause(WALL.paused || WALL.covered); }).catch(() => {}); }
+  else if (v === 'pc' && !RM && !WALL.loading && !$('#os').hidden) { WALL.loading = true; import('./ascii3d.js?v=4').then(m => { WALL.ctl = m.mountAscii($('#wall')); WALL.ctl.show(WALL.want === 'pc'); WALL.ctl.pause(WALL.paused || WALL.covered); }).catch(() => {}); }
 }
-function pauseWall(p) { WALL.paused = p; if (WALL.ctl) WALL.ctl.pause(p || WALL.covered); }
+function pauseWall(p) { WALL.paused = p; if (WALL.ctl) WALL.ctl.pause(p || WALL.covered); FX && FX.pause(p || WALL.covered); }
 let pickImage = null;
 async function useImage(file) {
   WM.open('launch');
@@ -289,6 +309,19 @@ function openPal() {
 }
 function closePal() { const p = $('#pal'); if (!p || p.hidden) return; p.classList.remove('on'); p.hidden = true; }
 
+// the sound bars in the top bar move with the real output, read from the analyser the cd player uses
+function meter() {
+  const b = $('#traySnd'), bars = [...b.querySelectorAll('.eq i')]; let buf = null, last = 0;
+  const loop = now => {
+    requestAnimationFrame(loop); if (now - last < 50) return; last = now;
+    const a = SOUND.analyser && SOUND.analyser();
+    if (!a || !SOUND.on || SOUND.muted || document.hidden) { if (b.classList.contains('live')) { b.classList.remove('live'); bars.forEach(i => { i.style.height = ''; }); } return; }
+    if (!buf) buf = new Uint8Array(a.frequencyBinCount); a.getByteFrequencyData(buf); b.classList.add('live');
+    [[1, 4], [4, 10], [10, 24], [24, 56]].forEach(([lo, hi], k) => { let v = 0; for (let j = lo; j < hi; j++) v = Math.max(v, buf[j]); bars[k].style.height = (3 + v / 255 * 10).toFixed(1) + 'px'; });
+  };
+  requestAnimationFrame(loop);
+}
+
 // the command bar: the same commands as cmd.exe, typed straight into the os. its answers show above it for a moment
 function commandBar() {
   const inp = $('#oCmdIn'), out = $('#oOut'); let hideT = 0;
@@ -310,6 +343,9 @@ function commandBar() {
 function initOS() {
   WM.init();
   HOME = mountHome({ root: $('#ohome'), mobile: MOBILE });
+  FX = mountFx({ main: $('#omain'), dock: $('#odock'), mobile: MOBILE, rm: RM });
+  $$('#odock .ico').forEach((ic, k) => { ic.style.setProperty('--k', k); ic.classList.add('draw'); });
+  meter();
   // anything marked data-open opens that app: the dock, the tabs, the home page, buttons inside windows
   document.addEventListener('click', e => { const b = e.target.closest('[data-open]'); if (!b) return; WM.open(b.dataset.open, undefined, b.closest('#odock, #otabs, .tiles, .ctas, #tasks') ? b : null); });
   $('#ohome').addEventListener('pointerdown', () => { closeMenus(); if (!NARROW()) WM.blur(); });
@@ -363,12 +399,10 @@ const WHY = { treasury: 'free launches are paused right now. you can still launc
 async function status() {
   try { STATUS = await api('status'); } catch { STATUS = null; }
   const s = STATUS;
-  $('#oStat').innerHTML = s ? `<i class="dot ${s.ready ? 'live' : 'off'}"></i><span>${s.ready ? 'launches open' : 'launches paused'}</span>` : '<i class="dot"></i><span>offline</span>';
   HOME && HOME.status(s);
   if (!s) return;
-  $('#freeLeft').innerHTML = s.ready ? '<span class="teal">●</span> launches open' : `<span class="gold">●</span> ${esc(WHY[s.why] || 'launches are paused.')}`;
-  $('#sysLive').innerHTML = `network: <b>${esc(s.network)}</b><br>launches: <b>${s.ready ? 'open' : 'paused'}</b>`;
-  $('#sysTre').textContent = `${s.network} · ${s.ready ? 'launches open' : 'launches paused'}`;
+  $('#sysLive').innerHTML = `network: <b>${esc(s.network)}</b>`;
+  $('#sysTre').textContent = s.network;
   if (s.x) $('#dockX').hidden = false;
   syncLaunch();
 }
@@ -478,7 +512,7 @@ async function launch() {
     if (st !== 'launched') say('<span class="g">still confirming. check coins.db in a minute.</span>');
     say(''); say(`<span class="ok">■ ${esc(f.name)} ($${esc(f.symbol)}) is live.</span> its creator is a key nobody else has ever seen.`);
     $('#dPump').href = 'https://pump.fun/coin/' + j.mint; $('#dTx').href = 'https://solscan.io/tx/' + j.sig; $('#doneCard').classList.add('show');
-    status(); coins(false);
+    FX && FX.burst(); status(); coins(false);
   } catch (e) {
     say(`<span class="r">✗ ${esc(e.message)}</span>`); if (e.detail) say(`<span class="m">${esc(String(e.detail).slice(0, 200))}</span>`);
     const back = document.createElement('button'); back.id = 'termBack'; back.className = 'bt'; back.type = 'button'; back.textContent = '< back to review'; back.style.marginTop = '10px'; back.onclick = () => { back.remove(); go(3); }; $('#term').after(back);

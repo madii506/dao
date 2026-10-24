@@ -74,7 +74,6 @@ export function install(X) {
   function liveLine() {
     const s = X.getStatus(), c = X.getCoins()[0];
     const parts = ['dao'];
-    if (s) parts.push(s.ready ? 'launches open' : 'launches paused');
     if (c) parts.push(`newest: $${c.symbol}`);
     parts.push('no names', 'no keys', 'every layer real');
     return parts.join('  ·  ');
