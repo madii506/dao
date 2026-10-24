@@ -739,7 +739,7 @@ const FilmShader = {
 };
 
 // ---------------------------------------------------------------- run
-// Two clocks: the room's own (real time, at most 1/24 s a frame so a slow frame slows the film instead of tearing it) and
+// Two clocks: the room's own (real time, at most 1/10 s a frame so a stall slows the film instead of tearing it) and
 // the film's, which every cue and the camera follow. A skip runs the film clock at 20x while the camera glides to the pc.
 export async function run({ canvas, onEnter, onReady, mobile, status, audio }) {
   try { await Promise.race([document.fonts.load('34px VT'), new Promise(r => setTimeout(r, 1500))]); } catch {}
@@ -959,24 +959,28 @@ export async function run({ canvas, onEnter, onReady, mobile, status, audio }) {
     shot: (sec, q = .93) => { if (sec != null) st.freeze = sec; step(performance.now()); return canvas.toDataURL('image/jpeg', q); },
     termShot: (sec, q = .93) => { st.noRender = true; if (sec != null) st.freeze = sec; step(performance.now()); st.noRender = false; return term.c.toDataURL('image/jpeg', q); },
     diveShot: (ms, q = .93) => { st.hold = st.diveT + ms; step(performance.now()); return st.done ? null : canvas.toDataURL('image/jpeg', q); } };
-  const perf = { n: 0, sum: 0, prev: 0, down: false };
-  function degrade() {                                    // a slower GPU: fewer pixels, no multisampling, no shadows
-    perf.down = true; renderer.setPixelRatio(1); composer.setPixelRatio(1);
-    for (const r of [composer.renderTarget1, composer.renderTarget2]) { r.samples = 0; r.dispose(); }
-    renderer.shadowMap.autoUpdate = false; P.lamp.castShadow = false; resize(true);
+  // a slower GPU gets fewer pixels, step by step: no multisampling or shadows first, then a lower resolution
+  const perf = { n: 0, sum: 0, prev: 0, lvl: 0 };
+  function degrade() {
+    perf.lvl++;
+    if (perf.lvl === 1) { for (const r of [composer.renderTarget1, composer.renderTarget2]) { r.samples = 0; r.dispose(); } renderer.shadowMap.autoUpdate = false; P.lamp.castShadow = false; }
+    const pr = Math.min(dpr, [1, 1, .75, .55][perf.lvl]); renderer.setPixelRatio(pr); composer.setPixelRatio(pr); resize(true);
   }
   function frame(now) {
     if (st.done) return;
     requestAnimationFrame(frame);
     if (st.paused) return;
-    if (!perf.down && perf.prev) { const d = now - perf.prev; if (d < 250) { perf.n++; if (perf.n > 20) perf.sum += d; if (perf.n === 110 && perf.sum / 90 > 27) degrade(); } }
+    if (perf.lvl < 3 && perf.prev) {
+      const d = now - perf.prev;
+      if (d < 400 && !document.hidden) { perf.n++; if (perf.n > 12) perf.sum += d; if (perf.n === 40) { if (perf.sum / 28 > (perf.lvl ? 38 : 30)) degrade(); else perf.lvl = 9; perf.n = 0; perf.sum = 0; } }
+    }
     perf.prev = now;
     step(now);
   }
   function step(now) {
     if (!started) { started = true; st.t0 = now; last = now; }
     const rdt = Math.min(.25, Math.max(0, (now - last) / 1000)); last = now;
-    const cdt = Math.min(rdt, 1 / 24);
+    const cdt = Math.min(rdt, 1 / 10);                    // down to 10 frames a second the film keeps real time
     if (st.freeze != null) { st.clock = st.ft = st.freeze; }
     else if (st.hold == null) { st.clock += cdt; st.ft += cdt * (st.skip ? 20 : 1); if (st.skip) st.ft = Math.min(st.ft, FT_POST + .25); }
     NOW = st.hold != null ? st.hold : st.t0 + st.clock * 1000;

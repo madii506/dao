@@ -61,7 +61,7 @@ async function boot() {
   try {
     const gl = document.createElement('canvas').getContext('webgl2') || document.createElement('canvas').getContext('webgl');
     if (!gl) throw new Error('no webgl');
-    const { run } = await import('./intro3d.js?v=14');
+    const { run } = await import('./intro3d.js?v=15');
     const statusP = fetch('/api/status').then(r => r.json()).catch(() => null);
     window.__dao = await run({ canvas, mobile: MOBILE || LOWQ, onEnter: go, status: statusP, audio: SOUND,
       onReady: () => { $('#ihint').classList.add('on'); $('#itouch').classList.add('on'); } });
