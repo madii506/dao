@@ -8,22 +8,19 @@ const ago = t => { const s = Math.max(1, (Date.now() - new Date(t).getTime()) / 
 const usd = n => n == null ? '—' : n >= 1e6 ? '$' + (n / 1e6).toFixed(2) + 'M' : n >= 1e3 ? '$' + (n / 1e3).toFixed(1) + 'K' : '$' + Math.round(n);
 
 const LAYERS = [
-  ['site', 'a site that tracks <b>nothing</b>', 'no analytics, no cookies, no third-party scripts or fonts. this page only talks to its own server, and its security headers forbid anything else. open devtools and check.', 'your IP reaches our host, like it does every website.'],
-  ['connect', 'no wallet <b>connect</b>', 'you never connect a wallet, approve anything, or sign a launch. there is nothing for a drainer to hijack and no wallet of yours on the launch transaction.', 'the coin, its name, image and description.'],
-  ['key', 'a creator key <b>born here</b>', "your browser makes a brand-new key and it becomes the coin's creator. it has no history and no funding trail. we never see it. you save it, you own the fees.", 'the creator address and the fees it earns.'],
-  ['launcher', 'a fresh <b>launcher</b>', 'a new wallet signs each launch. the treasury funds it inside the same transaction, to the lamport, so it ends empty. the dev wallet on the chart is never yours.', 'that the dao treasury paid for the launch.'],
-  ['gas', 'claims without <b>gas</b>', 'funding a new wallet is how people get traced. so the creator key never needs SOL: you sign the claim in your browser and the treasury pays the fee.', 'the claim, and what you do with the fees after.'],
-  ['files', 'clean <b>files</b>', 'your image is redrawn in your browser before upload, which drops hidden data like the camera, the time and the place. only the pixels leave your device.', 'whatever the picture itself shows.'],
+  ['site', 'a site that tracks <b>nothing</b>', 'no cookies, no analytics, no outside scripts.', 'your IP reaches the host.'],
+  ['connect', 'no wallet <b>connect</b>', 'you never connect, approve or sign.', 'the coin itself.'],
+  ['key', 'a key <b>born here</b>', 'your browser makes the creator key. we never see it.', 'the creator address.'],
+  ['launcher', 'a fresh <b>launcher</b>', 'a new wallet signs each launch and ends empty.', 'that the treasury paid.'],
+  ['gas', 'claims without <b>gas</b>', 'you sign, the treasury pays the fee.', 'where you send the fees.'],
+  ['files', 'clean <b>files</b>', 'images are redrawn before upload.', 'the picture itself.'],
 ];
 const FAQ = [
-  ['is it really free?', 'yes. creating a pump.fun coin costs a little SOL in rent and network fees, and the dao treasury pays it. you pay nothing and sign nothing.'],
-  ['who gets the creator fees?', 'the creator key, and only it. pump.fun pays creator fees to that address on every trade, and dao takes no cut.'],
-  ['can dao take my fees or my coin?', 'no. dao never sees the creator key, never buys the coin, and the launch wallet ends empty. it only holds its own treasury key.'],
-  ['can i launch with my own wallet?', 'yes. pick "connect wallet" in the creator step. your wallet signs and pays, can add a dev buy, and becomes the creator, so that coin is linked to it.'],
-  ['why is there a daily limit?', 'every free launch costs the treasury real SOL, so there is a set number per day and a few per visitor. the proof of work keeps bots out without asking who you are.'],
-  ['does dao keep logs?', 'it stores each launch (the coin and its addresses, which are public anyway). no accounts, no cookies, no analytics. the host still sees requests, as every host does.'],
-  ['can i edit or delete a coin?', 'no. a coin on pump.fun cannot be edited or deleted after launch, so check the review step.'],
-  ['is this financial advice?', 'no. memecoins are extremely risky and most go to zero. dao is a tool and is not affiliated with pump.fun.'],
+  ['is it free?', 'yes. the treasury pays the launch. you sign nothing.'],
+  ['who gets the fees?', 'your creator key. dao takes no cut.'],
+  ['can dao touch my coin?', 'no. it never sees your key.'],
+  ['what stays public?', 'the coin and its trades, like any coin. nothing links them to you.'],
+  ['financial advice?', 'no. memecoins are risky. most go to zero.'],
 ];
 const LOG = [['simulate create_v2 on mainnet', 'ok'], ['fund a fresh launcher, to the lamport', 'ok'], ['sign: launcher + mint', 'ok'], ['send', 'confirmed'], ['launcher balance after', '0'], ['names on it', 'none']];
 
@@ -34,7 +31,6 @@ function rings(on) {                                     // six nested boxes aro
     for (let x = x0; x <= x1; x++) { grid[y0][x] = ['─', i]; grid[y1][x] = ['─', i]; }
     for (let y = y0; y <= y1; y++) { grid[y][x0] = ['│', i]; grid[y][x1] = ['│', i]; }
     grid[y0][x0] = ['┌', i]; grid[y0][x1] = ['┐', i]; grid[y1][x0] = ['└', i]; grid[y1][x1] = ['┘', i];
-    const lab = '0' + (i + 1); if (x0 + 2 + lab.length < x1) [...lab].forEach((ch, k) => { grid[y0][x0 + 2 + k] = [ch, i]; });
   }
   const cy = H >> 1; [...'you'].forEach((ch, k) => { grid[cy][(W - 3 >> 1) + k] = [ch, 9]; });
   return grid.map(r => r.map(([ch, i]) => i === 9 ? `<span class="core">${ch}</span>` : i === on ? `<span class="on">${esc(ch)}</span>` : i >= 0 && i < on ? `<span class="pass">${esc(ch)}</span>` : esc(ch)).join('')).join('\n');
@@ -87,7 +83,7 @@ export function mountHome({ root, mobile }) {
   let cur = -1, auto = true, layT = 0, layVis = false;
   const show = i => {
     cur = i; const l = LAYERS[i];
-    card.innerHTML = `<div class="num">0${i + 1}<span>/06</span></div><h4>${l[1]}</h4><p>${esc(l[2])}</p><div class="pub"><b>still public:</b> ${esc(l[3])}</div>`;
+    card.innerHTML = `<div class="num">0${i + 1}</div><h4>${l[1]}</h4><p>${esc(l[2])}</p><div class="pub"><b>public:</b> ${esc(l[3])}</div>`;
     card.classList.remove('swap'); void card.offsetWidth; card.classList.add('swap');
     ringsEl.innerHTML = rings(i);
     $$('button', tabs).forEach((b, k) => { b.classList.toggle('on', k === i); b.setAttribute('aria-selected', String(k === i)); });
@@ -135,15 +131,13 @@ export function mountHome({ root, mobile }) {
   const live = $('#hLive', root);
   return {
     coins(list, err) {                                     // the newest coins, from the same read coins.db makes
-      if (err) { if (!live.querySelector('.lrow')) live.innerHTML = `<div class="empty">could not read the chain just now. it tries again on its own.</div>`; return; }
+      if (err) { if (!live.querySelector('.lrow')) live.innerHTML = `<div class="empty">the chain is slow right now. trying again.</div>`; return; }
       const l = (list || []).filter(c => c.status === 'launched' && c.mint).slice(0, 6);
-      if (!l.length) { live.innerHTML = '<div class="empty"><b>no launches yet.</b> the first coin launched on dao shows up here, read live from the chain. it could be yours.</div>'; return; }
-      live.innerHTML = l.map((c, i) => `<a class="lrow" style="--i:${i}" href="https://pump.fun/coin/${esc(c.mint)}" target="_blank" rel="noopener noreferrer"><img src="${esc(c.img)}" alt="" loading="lazy"><div class="ln"><b>${esc(c.name)}</b><span>$${esc(c.symbol)} · ${ago(c.at)} ago</span></div><div class="lm"><b>${c.mcapUsd != null ? usd(c.mcapUsd) : '—'}</b><span>${c.graduated ? 'graduated' : c.progress != null ? Math.round(c.progress * 100) + '% curve' : ''}</span></div><em>pump.fun ↗</em></a>`).join('');
+      if (!l.length) { live.innerHTML = '<div class="empty">no launches yet. the first one shows up here.</div>'; return; }
+      live.innerHTML = l.map((c, i) => `<a class="lrow" style="--i:${i}" href="https://pump.fun/coin/${esc(c.mint)}" target="_blank" rel="noopener noreferrer"><img src="${esc(c.img)}" alt="" loading="lazy"><div class="ln"><b>${esc(c.name)}</b><span>$${esc(c.symbol)}</span></div><div class="lm"><b>${c.mcapUsd != null ? usd(c.mcapUsd) : '—'}</b><span>${ago(c.at)}</span></div></a>`).join('');
     },
     status(s) {
-      const st = $('#hState', root); if (!st) return;
-      st.innerHTML = s ? `<i class="dot ${s.ready ? 'live' : 'off'}"></i>${s.ready ? 'launches open' : 'launches paused'}` : '<i class="dot"></i>offline';
-      if (s && s.x) $('#hX', root).innerHTML = `<a href="${esc(s.x)}" target="_blank" rel="noopener noreferrer">dao on x ↗</a>`;
+      const x = $('#hX', root); if (x && s && s.x) x.innerHTML = `<a href="${esc(s.x)}" target="_blank" rel="noopener noreferrer">dao on x ↗</a>`;
     },
     top() { root.scrollTo({ top: 0, behavior: RM ? 'auto' : 'smooth' }); },
     to(id) { const t = $('#' + id, root); if (t) root.scrollTo({ top: t.offsetTop - 12, behavior: RM ? 'auto' : 'smooth' }); },

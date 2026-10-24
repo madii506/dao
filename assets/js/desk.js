@@ -4,7 +4,7 @@ import { install } from './apps98.js?v=4';
 import { install as installTools } from './tools98.js?v=3';
 import { createSound } from './sound98.js?v=7';
 import * as WAL from './wallet98.js?v=2';
-import { mountHome } from './home.js?v=1';
+import { mountHome } from './home.js?v=2';
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const MOBILE = matchMedia('(max-width: 760px)').matches || matchMedia('(hover: none)').matches;
@@ -64,7 +64,7 @@ async function boot() {
     const { run } = await import('./intro3d.js?v=15');
     const statusP = fetch('/api/status').then(r => r.json()).catch(() => null);
     window.__dao = await run({ canvas, mobile: MOBILE || LOWQ, onEnter: go, status: statusP, audio: SOUND,
-      onReady: () => { $('#ihint').classList.add('on'); $('#itouch').classList.add('on'); } });
+      onReady: () => { $('#itouch').classList.add('on'); } });
     started = true;
     requestAnimationFrame(() => { canvas.classList.add('on'); const l = $('#iload'); if (l) l.remove(); });
   } catch (e) { const l = $('#iload'); if (l) l.remove(); if (!started) fallbackBoot(go); }
@@ -262,8 +262,8 @@ function palItems() {
     app('privacy', 'privacy.cpl', 'the six layers'), app('strip', 'strip.exe', 'see what a photo carries'), app('scan', 'scan.exe', 'what this page talks to'),
     app('paint', 'paint.exe', 'draw a coin'), app('sweeper', 'tracker sweeper', 'a game'), app('cd', 'cd player', 'the soundtrack'), app('cmd', 'cmd.exe', 'command prompt'),
     app('readme', 'readme.txt', 'the manual'), app('display', 'display.cpl', 'colours, crt, screen saver'), app('pc', 'system.cpl', 'status of this pc'), app('bin', 'recycle bin', 'emptied, on purpose'),
-    sec('h-top', 'top of home'), sec('h-how', 'how a launch works'), sec('h-layers', 'the six layers'), sec('h-live', 'live from the chain'), sec('h-tech', 'under the floor'),
-    sec('h-claim', 'claim without gas'), sec('h-apps', 'every app in this os'), sec('h-public', 'what stays public'), sec('h-faq', 'questions'),
+    sec('h-top', 'top of home'), sec('h-how', 'how a launch works'), sec('h-layers', 'the six layers'), sec('h-live', 'launched on dao'),
+    sec('h-apps', 'every app in this os'), sec('h-faq', 'questions'),
     act('sound on / off', 'toggle', 'cd', () => SOUND.toggle()), act('screen saver', 'start it now', 'display', () => HOOKS.saver && HOOKS.saver.start()),
     ...['amber', 'teal', 'rose', 'ice', 'mono'].map(c => act('colour: ' + c, 'accent', 'display', () => HOOKS.setAccent && HOOKS.setAccent(c))),
     act('back to room 00', 'replay the way in', 'door', backToRoom),
@@ -315,7 +315,7 @@ function initOS() {
   $('#ohome').addEventListener('pointerdown', () => { closeMenus(); if (!NARROW()) WM.blur(); });
   $('#tabApps').onclick = e => { e.stopPropagation(); openPal(); };
   $('#oFind').onclick = e => { e.stopPropagation(); openPal(); };
-  $('#oKey').textContent = MAC ? '⌘K' : 'ctrl K';
+  $('#oFind').dataset.tip = 'search · ' + (MAC ? '⌘K' : 'ctrl K');
   $('#pal').addEventListener('pointerdown', e => { if (e.target.id === 'pal') closePal(); });
   $('#palX').onclick = () => closePal(); $('#palX').textContent = MOBILE ? 'close' : 'esc';
   $('#palIn').addEventListener('input', () => { PAL.i = 0; palRender(); });
@@ -363,7 +363,7 @@ const WHY = { treasury: 'free launches are paused right now. you can still launc
 async function status() {
   try { STATUS = await api('status'); } catch { STATUS = null; }
   const s = STATUS;
-  $('#oStat').innerHTML = s ? `<i class="dot ${s.ready ? 'live' : 'off'}"></i><span>${s.ready ? 'launches open' : 'launches paused'}</span><em>${esc(s.network || '')}</em>` : '<i class="dot"></i><span>offline</span>';
+  $('#oStat').innerHTML = s ? `<i class="dot ${s.ready ? 'live' : 'off'}"></i><span>${s.ready ? 'launches open' : 'launches paused'}</span>` : '<i class="dot"></i><span>offline</span>';
   HOME && HOME.status(s);
   if (!s) return;
   $('#freeLeft').innerHTML = s.ready ? '<span class="teal">●</span> launches open' : `<span class="gold">●</span> ${esc(WHY[s.why] || 'launches are paused.')}`;
